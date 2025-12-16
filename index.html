@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的世界阅读记录 - 赛博天使终极版</title>
+    <title>我的世界阅读记录 - 赛博天使手机修复版</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -14,8 +14,6 @@
             --bg-main: #cbe3f7;
             --bg-panel: #ffffff;
             --text-dark: #5d4037;      
-            
-            /* ✝⚡ 赛博天使变量 */
             --fusion-bg: #0d0221;
             --fusion-pink: #ff00ff;
             --fusion-cyan: #00ffff;
@@ -30,30 +28,13 @@
             --retro-border-color-inset: #808080 #ffffff #ffffff #808080;
         }
 
-        /* 基础布局 - 强制占满全屏 */
-        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
-        body { background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; }
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; }
         
-        /* 左侧舞台 (地图) */
-        #left-stage { 
-            flex: 1; 
-            position: relative; 
-            width: 100%; 
-            height: 100vh; /* 强制高度 */
-            overflow: hidden; 
-        }
-        
-        /* 地图容器 - 绝对定位确保撑开 */
-        #map-container { 
-            width: 100%; height: 100%; 
-            position: absolute; top: 0; left: 0; 
-            z-index: 1; 
-            transition: opacity 0.5s ease, transform 0.5s ease; 
-            opacity: 1; transform: scale(1); visibility: visible; 
-        }
-        #main { width: 100%; height: 100%; min-height: 100vh; }
+        #left-stage { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
+        #map-container { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 1; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; transform: scale(1); visibility: visible; }
+        #main { width: 100%; height: 100%; }
 
-        /* UI 层 */
+        /* UI Layer */
         #bar-interface {
             width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 10;
             background-color: var(--fusion-bg);
@@ -101,7 +82,7 @@
         .fav-icon { font-size: 32px; margin-bottom: 5px; }
         .fav-name { font-size: 16px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; font-family: var(--font-body);}
 
-        /* 饮品卡 */
+        /* Drink Card */
         .drink-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50; }
         .drink-card-overlay.show { opacity: 1; pointer-events: auto; }
         .drink-card { background: #c0c0c0; width: 400px; max-width: 90%; padding: 40px 20px 20px 20px; border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #000; border-right: 2px solid #000; box-shadow: 15px 15px 0px rgba(0,0,0,0.5); position: relative; text-align: center; color: #000; transform: scale(0.8); opacity: 0; transition: all 0.3s; font-family: var(--font-body); border: 4px solid red; max-height: 85vh; overflow-y: auto; }
@@ -134,52 +115,68 @@
         #big-reveal-icon { font-size: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: drop-shadow(5px 5px 0 #fff); color: var(--fusion-pink); transition: all 0.3s; }
         #big-reveal-icon.popping { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        /* Panel & Sidebar (Desktop) */
+        /* Panel & Sidebar (Desktop Default) */
         #control-panel-wrapper { position: relative; flex: 0 0 360px; width: 360px; height: 100%; z-index: 100; transition: all 0.3s ease-in-out; margin-right: 0; }
         #control-panel-wrapper.collapsed { margin-right: -360px; }
         #control-panel-body { width: 100%; height: 100%; background-color: var(--bg-panel); box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
         
-        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; }
-        #toggle-sidebar-btn:hover { filter: brightness(0.95); }
+        /* 桌面端按钮样式 */
+        #toggle-sidebar-btn { 
+            position: absolute; left: -24px; top: 50%; transform: translateY(-50%); 
+            width: 24px; height: 60px; background-color: var(--bg-panel); 
+            border: 1px solid var(--border-color); border-right: none; 
+            border-radius: 8px 0 0 8px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; 
+        }
 
-        /* 📱 Mobile Responsive (Fixed) */
+        /* 📱 移动端适配 (核心修复) */
         @media (max-width: 768px) {
-            body { flex-direction: column; overflow: hidden; }
-            
-            /* 1. Map container takes full screen */
+            /* 1. 强制全屏布局，防止溢出 */
+            html, body { width: 100%; height: 100%; overflow: hidden; }
             #left-stage { 
-                position: fixed; 
-                top: 0; left: 0; width: 100%; height: 100vh; 
-                z-index: 1; 
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; 
             }
             #map-container, #main { width: 100%; height: 100%; }
 
-            /* 2. Bottom Drawer */
+            /* 2. 底部抽屉模式 */
             #control-panel-wrapper {
                 position: fixed; bottom: 0; left: 0; width: 100%; height: 85vh;
-                margin-right: 0; z-index: 2000;
+                margin-right: 0; z-index: 9000; /* 确保在最上层 */
                 transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-                transform: translateY(0); /* Active/Show */
+                transform: translateY(0); /* 展开 */
             }
             #control-panel-wrapper.collapsed {
-                margin-right: 0; transform: translateY(110%); /* Hidden */
+                margin-right: 0; transform: translateY(110%); /* 收起 */
             }
             #control-panel-body {
                 border-radius: 20px 20px 0 0; padding: 20px;
                 border-top: 4px solid var(--fusion-pink);
             }
 
-            /* 3. FAB Button (Fixed positioning outside wrapper context) */
+            /* 3. 悬浮按钮修复：强制固定定位，覆盖一切 */
             #toggle-sidebar-btn {
-                position: fixed; bottom: 30px; right: 25px; 
-                left: auto; top: auto; transform: none !important;
-                width: 60px; height: 60px; border-radius: 50%; font-size: 24px;
+                position: fixed !important; 
+                bottom: 30px !important; 
+                right: 25px !important; 
+                left: auto !important; 
+                top: auto !important; 
+                transform: none !important;
+                width: 60px !important; height: 60px !important; 
+                border-radius: 50%; font-size: 24px;
                 background: #000; border: 2px solid var(--fusion-cyan); 
                 box-shadow: 0 0 15px var(--fusion-pink);
-                color: transparent; z-index: 2001;
+                color: transparent !important; /* 隐藏原有文字 */
+                z-index: 9999 !important; /* 🌟 保证最高层级，不消失 */
+                display: flex; align-items: center; justify-content: center;
             }
+            
+            /* 按钮图标状态 */
             #toggle-sidebar-btn.btn-expanded::before { content: "▼"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
             #toggle-sidebar-btn:not(.btn-expanded)::before { content: "▲"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
+            
+            /* 4. 优化列表滚动 */
+            #book-list-display { padding-bottom: 80px; }
         }
     </style>
 </head>
@@ -314,6 +311,7 @@
     <script>
         const BIN_ID = '6940072543b1c97be9efcbb6'; 
         const API_KEY = '$2a$10$NK41BeroKJUHwITABG5hSOUM2STrIJgPrdkrbHXwIWmI4pHlPR2da'; 
+
         const COCKTAIL_DB = [
             { id: 'negroni', base: 'Gin', profile: 'bitter', strength: 'strong', name: 'Negroni', glass: 'Rocks', intro: '苦乐参半的平衡，如同命运的玩笑。', materials: '30ml 金酒, 30ml 金巴利, 30ml 甜味美思', method: '加冰搅拌，饰以橙皮。' },
             { id: 'old_fashioned', base: 'Whiskey', profile: 'bitter', strength: 'strong', name: 'Old Fashioned', glass: 'Rocks', intro: '经典永不过时，沉稳而深邃。', materials: '45ml 波本威士忌, 1块方糖, 2滴苦精', method: '方糖浸苦精捣碎，加冰加酒搅拌。' },
@@ -345,11 +343,14 @@
             const wrapper = document.getElementById('control-panel-wrapper');
             const btn = document.getElementById('toggle-sidebar-btn');
             
+            // 如果屏幕宽度小于 768px (手机)，默认添加 collapsed 类
             if (window.innerWidth <= 768) {
                 wrapper.classList.add('collapsed');
                 btn.classList.remove('btn-expanded');
             }
         }
+
+        // 在加载地图前执行
         initMobileState();
 
         function loadCloudData() {
@@ -598,12 +599,14 @@
             });
         }
 
+        // 修改：更新 toggleSidebar 逻辑，处理按钮状态
         function toggleSidebar() {
             const wrapper = document.getElementById('control-panel-wrapper');
             const btn = document.getElementById('toggle-sidebar-btn');
             
             wrapper.classList.toggle('collapsed');
             
+            // 切换按钮的展开状态类，用于 CSS 伪元素图标切换
             if(wrapper.classList.contains('collapsed')) {
                 btn.classList.remove('btn-expanded');
                 // 桌面版显示文字箭头
@@ -613,7 +616,7 @@
                 if(window.innerWidth > 768) btn.innerHTML = '▶';
             }
             
-            // 🌟 修复：延迟调整地图大小，解决动画导致的变形
+            // 🌟 关键修复：给一点延迟，等动画做完再 resize，否则地图可能会变形
             setTimeout(() => { myChart.resize(); }, 400); 
         }
 
