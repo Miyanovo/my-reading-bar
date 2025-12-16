@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的世界阅读记录 - 赛博天使手机版</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <style>
+        /* --- 🎨 核心配色 --- */
+        :root {
+            --primary-color: #7cb342; 
+            --bg-main: #cbe3f7;
+            --bg-panel: #ffffff;
+            --text-dark: #5d4037;      
+            
+            /* ✝⚡ 融合风格变量 */
+            --fusion-bg: #0d0221;
+            --fusion-pink: #ff00ff;
+            --fusion-cyan: #00ffff;
+            --fusion-purple: #bd00ff;
+            --fusion-win-bg: #2a2a2a;
+            --fusion-text: #e0e0e0;
+            --font-title: 'Press Start 2P', cursive;
+            --font-body: 'VT323', monospace;
+            --retro-border-outset: 3px solid;
+            --retro-border-color-outset: #ffffff #808080 #808080 #ffffff;
+            --retro-border-inset: 3px solid;
+            --retro-border-color-inset: #808080 #ffffff #ffffff #808080;
+        }
+
+        /* 基础样式 */
+        body { margin: 0; padding: 0; background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; height: 100vh; overflow: hidden; transition: background-color 0.5s ease; }
+        #left-stage { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
+        #map-container { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 1; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; transform: scale(1); visibility: visible; }
+        #main { width: 100%; height: 100%; }
+
+        /* =========================================
+           ✝⚡ UI 层
+           ========================================= */
+        #bar-interface {
+            width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 10;
+            background-color: var(--fusion-bg);
+            background-image: 
+                linear-gradient(rgba(189, 0, 255, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(189, 0, 255, 0.2) 1px, transparent 1px);
+            background-size: 30px 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.1);
+            transition: all 0.2s steps(5);
+            color: var(--fusion-text); padding-top: 40px; box-sizing: border-box;
+            font-family: var(--font-body);
+        }
+        #bar-interface::before {
+            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        }
+
+        body.bar-mode #map-container { opacity: 0; transform: scale(0.9); visibility: hidden; }
+        body.bar-mode #bar-interface { opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1); }
+
+        .cyber-window {
+            background: var(--fusion-win-bg);
+            border: 2px solid var(--fusion-pink);
+            box-shadow: 6px 6px 0px rgba(0,255,255,0.3);
+            position: relative; padding-top: 25px;
+        }
+        .cyber-window::before {
+            content: '♥ SYSTEM_OVERRIDE ♥';
+            position: absolute; top: 0; left: 0; right: 0; height: 22px;
+            background: linear-gradient(90deg, var(--fusion-pink), var(--fusion-purple));
+            color: white; font-family: var(--font-title); font-size: 10px;
+            display: flex; align-items: center; padding-left: 5px;
+            border-bottom: 2px solid var(--fusion-pink);
+        }
+
+        .bar-nav { display: flex; gap: 10px; margin-bottom: 30px; z-index: 20; }
+        .bar-nav-item {
+            padding: 8px 12px; background: #000; border: 2px solid var(--fusion-cyan); color: var(--fusion-cyan);
+            cursor: pointer; font-family: var(--font-title); font-size: 12px; box-shadow: 3px 3px 0 var(--fusion-purple); transition: 0.1s;
+        }
+        .bar-nav-item.active { background: var(--fusion-pink); color: #fff; border-color: #fff; box-shadow: 3px 3px 0 #fff; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+        .bar-content { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; position: relative; z-index: 5; padding-bottom: 100px;}
+        .bar-view { display: none; width: 100%; flex-direction: column; align-items: center; width: 90%; }
+        .bar-view.active { display: flex; }
+
+        .neon-sign {
+            font-family: var(--font-title); font-size: 2rem; color: #fff;
+            text-shadow: 4px 0 var(--fusion-pink), -4px 0 var(--fusion-cyan);
+            margin-bottom: 15px; text-align: center; line-height: 1.5; animation: glitchText 0.3s infinite;
+        }
+        @keyframes glitchText { 0% { transform: skew(0deg); } 20% { transform: skew(-2deg); } 40% { transform: skew(2deg); } 60% { transform: skew(-1deg); } 80% { transform: skew(1deg); } 100% { transform: skew(0deg); } }
+
+        .random-btn {
+            margin-top: 30px; width: 200px; height: 80px; background: #000; border: 4px solid var(--fusion-pink);
+            box-shadow: 0 0 20px var(--fusion-pink), inset 0 0 20px var(--fusion-pink);
+            color: var(--fusion-pink); font-family: var(--font-title); font-size: 14px; cursor: pointer;
+            transition: all 0.1s; position: relative; overflow: hidden; text-transform: uppercase;
+        }
+        .random-btn::before { content: ">> INJECT <<"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
+        .random-btn:hover { background: var(--fusion-pink); color: #fff; box-shadow: 0 0 40px var(--fusion-pink); }
+        .random-btn:active { transform: scale(0.95); }
+
+        .filter-group {
+            background: rgba(0, 0, 0, 0.8); border: 1px solid var(--fusion-cyan);
+            box-shadow: 5px 5px 0 var(--fusion-purple); position: relative; padding: 20px; margin-bottom: 20px; width: 100%; box-sizing: border-box;
+        }
+        .filter-title { color: var(--fusion-pink); font-family: var(--font-title); font-size: 12px; margin-bottom: 10px; display: block; border-bottom: 1px dashed var(--fusion-cyan); padding-bottom: 5px; }
+        .filter-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-opt { padding: 5px 10px; border: 1px solid #555; background: #111; cursor: pointer; color: #aaa; transition: 0.2s; font-family: var(--font-body); font-size: 18px; }
+        .filter-opt.selected { background: var(--fusion-cyan); color: #000; border-color: var(--fusion-cyan); font-weight: bold; }
+
+        .produce-btn {
+            width: 100%; padding: 15px; background: linear-gradient(90deg, #b00b69, #4b0082);
+            border: 2px solid #fff; color: #fff; font-family: var(--font-title); font-size: 14px;
+            cursor: pointer; margin-top: 15px; box-shadow: 0 0 15px rgba(255,255,255,0.5); text-shadow: 2px 2px 0 #000; 
+        }
+
+        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 0; }
+        .fav-item {
+            background: rgba(0,0,0,0.5); border: 1px solid var(--fusion-cyan); padding: 15px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+        }
+        .fav-icon { font-size: 32px; margin-bottom: 5px; }
+        .fav-name { font-size: 16px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; font-family: var(--font-body);}
+
+        /* 饮品卡 */
+        .drink-card-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50;
+        }
+        .drink-card-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .drink-card {
+            background: #c0c0c0; width: 400px; max-width: 90%; padding: 40px 20px 20px 20px;
+            border-top: 2px solid #fff; border-left: 2px solid #fff;
+            border-bottom: 2px solid #000; border-right: 2px solid #000;
+            box-shadow: 15px 15px 0px rgba(0,0,0,0.5);
+            position: relative; text-align: center; color: #000;
+            transform: scale(0.8); opacity: 0; transition: all 0.3s;
+            font-family: var(--font-body); border: 4px solid red;
+            max-height: 85vh; overflow-y: auto;
+        }
+        .drink-card-overlay.show .drink-card { transform: scale(1); opacity: 1; }
+        .drink-card::before {
+            content: 'ERROR: DRINK_FOUND'; position: absolute; top: 4px; left: 4px; right: 4px; height: 25px;
+            background: navy; color: white; font-family: var(--font-body); font-weight: bold; font-size: 16px;
+            display: flex; align-items: center; padding-left: 5px;
+        }
+
+        .card-close { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; background: #c0c0c0; border: 1px solid #000; text-align: center; cursor: pointer; color: #000; z-index: 2; font-weight: bold; line-height: 18px;}
+        .card-glass-icon { font-size: 70px; margin: 10px 0; display: inline-block; filter: drop-shadow(4px 4px 0 var(--fusion-pink)); }
+        .card-title { font-family: var(--font-title); font-size: 16px; margin-bottom: 5px; color: #000; text-shadow: 2px 2px 0 #fff; line-height: 1.4; }
+        .card-subtitle { font-size: 18px; color: var(--fusion-pink); margin-bottom: 15px; text-transform: uppercase; font-weight: bold; background: #000; display: inline-block; padding: 0 5px; }
+        .card-section { text-align: left; margin-bottom: 10px; padding: 10px; border: 1px dotted #000; background: #fff; }
+        .card-label { font-size: 14px; color: navy; font-weight: bold; margin-bottom: 4px; display: block; font-family: var(--font-body); text-decoration: underline; }
+        .card-text { font-size: 18px; color: #000; line-height: 1.2; outline: none; }
+        .tag-pill { display: inline-block; padding: 2px 6px; background: #000; color: var(--fusion-cyan); font-size: 14px; margin-right: 5px; margin-top: 5px; font-family: var(--font-body); }
+        .card-actions { position: absolute; top: 35px; left: 20px; display: flex; gap: 8px; }
+        .action-icon-btn { font-size: 18px; cursor: pointer; color: #000; background: #c0c0c0; border: 1px solid #fff; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+        .action-icon-btn.active { background: #ffff00; } .action-icon-btn.saved { background: #00ff00; }
+
+        /* 动画层 */
+        #mixing-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--fusion-bg); z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        #mixing-overlay.active { opacity: 1; pointer-events: auto; }
+        .mixing-bowl { width: 150px; height: 150px; position: relative; margin-bottom: 40px; }
+        .mixing-bowl::before { content: '💊'; font-size: 100px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: spin3D 1s infinite linear; }
+        @keyframes spin3D { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } }
+        .mix-progress-container { width: 80%; height: 20px; background: #c0c0c0; border: 2px solid #fff; border-bottom: 2px solid #000; border-right: 2px solid #000; position: relative; }
+        .mix-progress-bar { height: 100%; width: 0%; background: navy; transition: width 0.1s steps(5); }
+        .mix-text { color: var(--fusion-cyan); font-size: 20px; font-family: var(--font-body); margin-top: 10px; text-align: center; }
+        #big-reveal-icon { font-size: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: drop-shadow(5px 5px 0 #fff); color: var(--fusion-pink); transition: all 0.3s; }
+        #big-reveal-icon.popping { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+        /* 侧边栏/控制台 */
+        #control-panel-wrapper { position: relative; flex: 0 0 360px; width: 360px; height: 100%; z-index: 100; transition: all 0.3s ease-in-out; margin-right: 0; }
+        #control-panel-wrapper.collapsed { margin-right: -360px; }
+        #control-panel-body { width: 100%; height: 100%; background-color: var(--bg-panel); box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
+        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; }
+        
+        /* 📱 手机端适配 (核心修改) */
+        @media (max-width: 768px) {
+            body { flex-direction: column; overflow: hidden; }
+            #left-stage { width: 100%; height: 100vh; flex: none; }
+            
+            /* 控制面板改为底部抽屉 */
+            #control-panel-wrapper {
+                position: fixed; bottom: 0; left: 0; width: 100%; height: 85vh;
+                margin-right: 0; z-index: 2000;
+                transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+                transform: translateY(0);
+            }
+            #control-panel-wrapper.collapsed {
+                margin-right: 0; transform: translateY(110%);
+            }
+            #control-panel-body {
+                border-radius: 20px 20px 0 0; padding: 20px;
+                border-top: 4px solid var(--fusion-pink);
+            }
+
+            /* 开关按钮：右下角 FAB */
+            #toggle-sidebar-btn {
+                position: fixed; bottom: 30px; right: 25px; left: auto; top: auto;
+                transform: none !important; width: 60px; height: 60px; border-radius: 50%; font-size: 24px;
+                background: #000; border: 2px solid var(--fusion-cyan); box-shadow: 0 0 15px var(--fusion-pink);
+                color: transparent; z-index: 2001;
+            }
+            /* 按钮图标 */
+            #control-panel-wrapper.collapsed ~ #toggle-sidebar-btn::before { content: "▲"; color: var(--fusion-cyan); font-size: 24px;} 
+            #control-panel-wrapper:not(.collapsed) ~ #toggle-sidebar-btn::before { content: "▼"; color: var(--fusion-cyan); font-size: 24px;}
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-mask">
+        <div class="spinner"></div>
+        <div id="loading-text">Downloading Angel.exe...</div>
+    </div>
+
+    <div id="left-stage">
+        <div id="map-container"><div id="main"></div></div>
+        
+        <div id="bar-interface">
+            <div id="mixing-overlay">
+                <div class="mixing-bowl"></div>
+                <div class="mix-progress-container"><div class="mix-progress-bar" id="mix-bar"></div></div>
+                <div class="mix-text" id="mix-text">CONNECTING...</div>
+                <div id="big-reveal-icon"></div>
+            </div>
+
+            <div class="bar-nav">
+                <div class="bar-nav-item active" onclick="switchBarTab('random')">♥ GACHA ♥</div>
+                <div class="bar-nav-item" onclick="switchBarTab('filter')">⚙️ CONFIG</div>
+                <div class="bar-nav-item" onclick="switchBarTab('fav')">📁 LOGS</div>
+            </div>
+
+            <div class="bar-content">
+                <div id="view-random" class="bar-view active" style="text-align: center;">
+                    <div class="neon-sign">✝ CYBER<br>ANGEL BAR ✝</div>
+                    <div style="color:var(--fusion-pink); margin-bottom:30px; font-family:var(--font-body); font-size: 20px; font-weight: bold; text-shadow: 1px 1px #fff; background: rgba(0,0,0,0.5); padding: 5px;">"Is this reality or just another stream?"</div>
+                    <button class="random-btn" onclick="serveRandomDrink()">💊 OVERDOSE 💊</button>
+                </div>
+
+                <div id="view-filter" class="bar-view">
+                    <div class="filter-group cyber-window">
+                        <span class="filter-title">BASE_SPIRIT.exe</span>
+                        <div class="filter-options" id="opt-base">
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'base', 'any')">ALL</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Gin')">GIN</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Whiskey')">WHISKY</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Rum')">RUM</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Vodka')">VODKA</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Tequila')">TEQ</div>
+                        </div>
+                    </div>
+                    <div class="filter-group cyber-window">
+                        <span class="filter-title">FLAVOR_MATRIX.dll</span>
+                        <div class="filter-options" id="opt-taste">
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'taste', 'any')">VOID</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sour')">SOUR</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sweet')">SWEET</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'bitter')">BITTER</div>
+                        </div>
+                    </div>
+                    <div class="filter-group cyber-window">
+                        <span class="filter-title">STRESS_LEVEL</span>
+                        <div class="filter-options" id="opt-strength">
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'strength', 'any')">RNG</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'light')">LOW</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'medium')">MID</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'strong')">HIGH</div>
+                        </div>
+                    </div>
+                    <button class="produce-btn" onclick="serveFilteredDrink()">⚡ STREAM START ⚡</button>
+                </div>
+
+                <div id="view-fav" class="bar-view">
+                    <div class="fav-grid" id="fav-container"></div>
+                </div>
+            </div>
+            
+            <div class="drink-card-overlay" id="drink-overlay">
+                <div class="drink-card" id="capture-target">
+                    <div class="card-actions">
+                        <button class="action-icon-btn" id="btn-fav" onclick="toggleFavorite()">★</button>
+                        <button class="action-icon-btn" id="btn-save" onclick="saveCurrentCard()">💾</button>
+                        <button class="action-icon-btn" id="btn-download" onclick="downloadCard()">📥</button>
+                    </div>
+                    <div class="card-close" onclick="closeDrinkCard()">X</div>
+                    <div class="card-glass-icon" id="card-icon">🍸</div>
+                    <div class="card-title" id="card-title">Book Title</div>
+                    <div class="card-subtitle" id="card-base">Base Spirit</div>
+                    <div class="card-section">
+                        <span class="card-label">COMMENT.txt</span>
+                        <div class="card-text" id="card-intro" contenteditable="true" spellcheck="false">...</div>
+                        <div style="margin-top:5px;" id="card-tags"></div>
+                    </div>
+                    <div class="card-section">
+                        <span class="card-label">INGREDIENTS.dat</span>
+                        <div class="card-text" id="card-ingredients" contenteditable="true" spellcheck="false">...</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="card-label">PROTOCOL.log</span>
+                        <div class="card-text" id="card-method" contenteditable="true" spellcheck="false">...</div>
+                    </div>
+                    <div style="font-size:14px; color:blue; margin-top:15px; font-weight:bold;">VESSEL TYPE: <span id="card-glass">...</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="control-panel-wrapper">
+        <div id="toggle-sidebar-btn" onclick="toggleSidebar()">▶</div>
+        <div id="control-panel-body">
+            <h2>🌿 阅读记录</h2>
+            <div class="mode-switch-container">
+                <div class="switch-label"><span id="mode-icon">🕵️</span> <span>仅显示悬疑</span></div>
+                <label><input class="toggle-checkbox" type="checkbox" id="mystery-toggle" onchange="toggleMysteryMode()"><div class="toggle-slot"><div class="toggle-button"></div></div></label>
+            </div>
+            <div class="mode-switch-container">
+                <div class="switch-label"><span id="mode-icon">🍸</span> <span>赛博天使模式</span></div>
+                <label><input class="toggle-checkbox" type="checkbox" id="bar-toggle" onchange="toggleBarMode()"><div class="toggle-slot"><div class="toggle-button"></div></div></label>
+            </div>
+            <div class="input-group">
+                <label>📍 地区筛选 / 录入</label>
+                <select id="country-select" onchange="filterList()"></select>
+            </div>
+            <div class="input-group">
+                <label>📖 书名 (智能分类)</label>
+                <input type="text" id="book-name" placeholder="输入书名...">
+            </div>
+            <button id="add-btn" onclick="addBook()">✨ 智能记录</button>
+            <div id="book-list-display"></div>
+        </div>
+    </div>
+
+    <script>
+        const BIN_ID = '6940072543b1c97be9efcbb6'; 
+        const API_KEY = '$2a$10$NK41BeroKJUHwITABG5hSOUM2STrIJgPrdkrbHXwIWmI4pHlPR2da'; 
+        const COCKTAIL_DB = [
+            { id: 'negroni', base: 'Gin', profile: 'bitter', strength: 'strong', name: 'Negroni', glass: 'Rocks', intro: '苦乐参半的平衡，如同命运的玩笑。', materials: '30ml 金酒, 30ml 金巴利, 30ml 甜味美思', method: '加冰搅拌，饰以橙皮。' },
+            { id: 'old_fashioned', base: 'Whiskey', profile: 'bitter', strength: 'strong', name: 'Old Fashioned', glass: 'Rocks', intro: '经典永不过时，沉稳而深邃。', materials: '45ml 波本威士忌, 1块方糖, 2滴苦精', method: '方糖浸苦精捣碎，加冰加酒搅拌。' },
+            { id: 'martini', base: 'Gin', profile: 'dry', strength: 'strong', name: 'Dry Martini', glass: 'Martini', intro: '极简主义的冷峻，锋利如刀。', materials: '60ml 金酒, 10ml 干味美思', method: '加冰搅拌至极冷，滤入冰冻酒杯。' },
+            { id: 'margarita', base: 'Tequila', profile: 'sour', strength: 'medium', name: 'Margarita', glass: 'Coupe', intro: '咸与酸的交织，热烈的情感爆发。', materials: '45ml 龙舌兰, 20ml 君度, 20ml 青柠汁, 盐', method: '盐边，加冰摇和。' },
+            { id: 'whiskey_sour', base: 'Whiskey', profile: 'sour', strength: 'medium', name: 'Whiskey Sour', glass: 'Rocks', intro: '柔滑的酸甜，抚平内心的褶皱。', materials: '45ml 威士忌, 20ml 柠檬汁, 15ml 糖浆, 蛋白', method: '干摇后加冰摇和。' },
+            { id: 'daiquiri', base: 'Rum', profile: 'sour', strength: 'medium', name: 'Daiquiri', glass: 'Coupe', intro: '海明威的最爱，纯粹的热带风暴。', materials: '60ml 白朗姆, 25ml 青柠汁, 15ml 糖浆', method: '加冰摇和。' },
+            { id: 'mojito', base: 'Rum', profile: 'sweet', strength: 'light', name: 'Mojito', glass: 'Highball', intro: '薄荷的清凉，夏日午后的白日梦。', materials: '50ml 白朗姆, 薄荷叶, 青柠, 糖, 苏打水', method: '捣碎薄荷青柠，加碎冰搅拌。' },
+            { id: 'aperol_spritz', base: 'Prosecco', profile: 'bitter', strength: 'light', name: 'Aperol Spritz', glass: 'Wine', intro: '夕阳般的橙色，轻松愉悦的开篇。', materials: '90ml 起泡酒, 60ml 阿佩罗, 苏打水', method: '满冰直调。' },
+            { id: 'godfather', base: 'Whiskey', profile: 'sweet', strength: 'strong', name: 'Godfather', glass: 'Rocks', intro: '杏仁的香甜掩盖了威士忌的烈。', materials: '45ml 苏格兰威士忌, 15ml 杏仁利口酒', method: '加冰搅拌。' },
+            { id: 'manhattan', base: 'Whiskey', profile: 'bitter', strength: 'strong', name: 'Manhattan', glass: 'Coupe', intro: '城市的夜色，红樱桃般的诱惑。', materials: '50ml 黑麦威士忌, 20ml 甜味美思, 苦精', method: '加冰搅拌。' },
+            { id: 'cosmopolitan', base: 'Vodka', profile: 'sweet', strength: 'medium', name: 'Cosmopolitan', glass: 'Martini', intro: '粉红色的都会传说，时尚而迷离。', materials: '45ml 伏特加, 15ml 君度, 蔓越莓汁, 青柠', method: '加冰摇和。' },
+            { id: 'gin_tonic', base: 'Gin', profile: 'bitter', strength: 'medium', name: 'Gin & Tonic', glass: 'Highball', intro: '奎宁的苦味，治愈灵魂的良药。', materials: '45ml 金酒, 通宁水, 青柠角', method: '直调。' },
+            { id: 'long_island', base: 'Mixed', profile: 'sweet', strength: 'strong', name: 'Long Island Iced Tea', glass: 'Highball', intro: '看似无害的红茶，实则混乱的深渊。', materials: '五大基酒各15ml, 柠檬汁, 可乐', method: '加冰摇和后注满可乐。' },
+            { id: 'bloody_mary', base: 'Vodka', profile: 'savory', strength: 'medium', name: 'Bloody Mary', glass: 'Highball', intro: '番茄与香料的狂欢，复杂的救赎。', materials: '45ml 伏特加, 番茄汁, 柠檬, 辣酱油, 盐胡椒', method: '滚法调制。' },
+            { id: 'white_russian', base: 'Vodka', profile: 'sweet', strength: 'medium', name: 'White Russian', glass: 'Rocks', intro: '丝滑的奶油，慵懒的哲学。', materials: '45ml 伏特加, 20ml 咖啡利口酒, 鲜奶油', method: '直调，奶油漂浮。' },
+            { id: 'pina_colada', base: 'Rum', profile: 'sweet', strength: 'medium', name: 'Piña Colada', glass: 'Hurricane', intro: '菠萝与椰奶，逃离现实的借口。', materials: '45ml 朗姆, 椰浆, 菠萝汁', method: '加冰摇和或搅拌。' }
+        ];
+
+        var myChart = echarts.init(document.getElementById('main'));
+        var myBookData = {}; var geoJsonData = null; var allCountryList = []; 
+        var isMysteryMode = false; var isBarMode = false;
+        var currentBarTab = 'random'; var currentBookForDrink = null; var favoriteDrinks = []; 
+        var filterState = { taste: 'any', strength: 'any', base: 'any' };
+
+        var nameMap = { 'Afghanistan': '阿富汗', 'Albania': '阿尔巴尼亚', 'Algeria': '阿尔及利亚', 'Andorra': '安道尔', 'Angola': '安哥拉', 'Antarctica': '南极洲', 'Antigua and Barb.': '安提瓜和巴布达', 'Argentina': '阿根廷', 'Armenia': '亚美尼亚', 'Australia': '澳大利亚', 'Austria': '奥地利', 'Azerbaijan': '阿塞拜疆', 'Bahamas': '巴哈马', 'Bahrain': '巴林', 'Bangladesh': '孟加拉国', 'Barbados': '巴巴多斯', 'Belarus': '白俄罗斯', 'Belgium': '比利时', 'Belize': '伯利兹', 'Benin': '贝宁', 'Bermuda': '百慕大', 'Bhutan': '不丹', 'Bolivia': '玻利维亚', 'Bosnia and Herz.': '波黑', 'Botswana': '博茨瓦纳', 'Brazil': '巴西', 'Brunei': '文莱', 'Bulgaria': '保加利亚', 'Burkina Faso': '布基纳法索', 'Burundi': '布隆迪', 'Cambodia': '柬埔寨', 'Cameroon': '喀麦隆', 'Canada': '加拿大', 'Cape Verde': '佛得角', 'Central African Rep.': '中非共和国', 'Chad': '乍得', 'Chile': '智利', 'China': '中国', 'Colombia': '哥伦比亚', 'Comoros': '科摩罗', 'Congo': '刚果共和国', 'Costa Rica': '哥斯达黎加', 'Croatia': '克罗地亚', 'Cuba': '古巴', 'Cyprus': '塞浦路斯', 'Czech Rep.': '捷克共和国', 'Côte d\'Ivoire': '科特迪瓦', 'Dem. Rep. Congo': '刚果民主共和国', 'Dem. Rep. Korea': '朝鲜', 'Denmark': '丹麦', 'Djibouti': '吉布提', 'Dominica': '多米尼克', 'Dominican Rep.': '多米尼加', 'Ecuador': '厄瓜多尔', 'Egypt': '埃及', 'El Salvador': '萨尔瓦多', 'Eq. Guinea': '赤道几内亚', 'Eritrea': '厄立特里亚', 'Estonia': '爱沙尼亚', 'Ethiopia': '埃塞俄比亚', 'Falkland Is.': '福克兰群岛', 'Fiji': '斐济', 'Finland': '芬兰', 'France': '法国', 'Fr. S. Antarctic Lands': '法属南半球和南极领地', 'Gabon': '加蓬', 'Gambia': '冈比亚', 'Georgia': '格鲁吉亚', 'Germany': '德国', 'Ghana': '加纳', 'Greece': '希腊', 'Greenland': '格陵兰', 'Grenada': '格林纳达', 'Guatemala': '危地马拉', 'Guinea': '几内亚', 'Guinea-Bissau': '几内亚比绍', 'Guyana': '圭亚那', 'Haiti': '海地', 'Honduras': '洪都拉斯', 'Hungary': '匈牙利', 'Iceland': '冰岛', 'India': '印度', 'Indonesia': '印度尼西亚', 'Iran': '伊朗', 'Iraq': '伊拉克', 'Ireland': '爱尔兰', 'Israel': '以色列', 'Italy': '意大利', 'Ivory Coast': '科特迪瓦', 'Jamaica': '牙买加', 'Japan': '日本', 'Jordan': '约旦', 'Kazakhstan': '哈萨克斯坦', 'Kenya': '肯尼亚', 'Korea': '韩国', 'Kosovo': '科索沃', 'Kuwait': '科威特', 'Kyrgyzstan': '吉尔吉斯斯坦', 'Lao PDR': '老挝', 'Latvia': '拉脱维亚', 'Lebanon': '黎巴嫩', 'Lesotho': '莱索托', 'Liberia': '利比里亚', 'Libya': '利比亚', 'Liechtenstein': '列支敦士登', 'Lithuania': '立陶宛', 'Luxembourg': '卢森堡', 'Madagascar': '马达加斯加', 'Malawi': '马拉维', 'Malaysia': '马来西亚', 'Mali': '马里', 'Malta': '马耳他', 'Mauritania': '毛里塔尼亚', 'Mauritius': '毛里求斯', 'Mexico': '墨西哥', 'Moldova': '摩尔多瓦', 'Monaco': '摩纳哥', 'Mongolia': '蒙古', 'Montenegro': '黑山', 'Morocco': '摩洛哥', 'Mozambique': '莫桑比克', 'Myanmar': '缅甸', 'Namibia': '纳米比亚', 'Nepal': '尼泊尔', 'Netherlands': '荷兰', 'New Zealand': '新西兰', 'Nicaragua': '尼加拉瓜', 'Niger': '尼日尔', 'Nigeria': '尼日利亚', 'North Korea': '朝鲜', 'North Macedonia': '北马其顿', 'Norway': '挪威', 'Oman': '阿曼', 'Pakistan': '巴基斯坦', 'Palestine': '巴勒斯坦', 'Panama': '巴拿马', 'Papua New Guinea': '巴布亚新几内亚', 'Paraguay': '巴拉圭', 'Peru': '秘鲁', 'Philippines': '菲律宾', 'Poland': '波兰', 'Portugal': '葡萄牙', 'Puerto Rico': '波多黎各', 'Qatar': '卡塔尔', 'Romania': '罗马尼亚', 'Russia': '俄罗斯', 'Rwanda': '卢旺达', 'S. Sudan': '南苏丹', 'Samoa': '萨摩亚', 'Saudi Arabia': '沙特阿拉伯', 'Senegal': '塞内加尔', 'Serbia': '塞尔维亚', 'Seychelles': '塞舌尔', 'Sierra Leone': '塞拉利昂', 'Singapore': '新加坡', 'Slovakia': '斯洛伐克', 'Slovenia': '斯洛文尼亚', 'Solomon Is.': '所罗门群岛', 'Somalia': '索马里', 'South Africa': '南非', 'South Korea': '韩国', 'South Sudan': '南苏丹', 'Spain': '西班牙', 'Sri Lanka': '斯里兰卡', 'Sudan': '苏丹', 'Suriname': '苏里南', 'Swaziland': '斯威士兰', 'Sweden': '瑞典', 'Switzerland': '瑞士', 'Syria': '叙利亚', 'Taiwan': '中国', 'Tajikistan': '塔吉克斯坦', 'Tanzania': '坦桑尼亚', 'Thailand': '泰国', 'Timor-Leste': '东帝汶', 'Togo': '多哥', 'Tonga': '汤加', 'Trinidad and Tobago': '特立尼达和多巴哥', 'Tunisia': '突尼斯', 'Turkey': '土耳其', 'Turkmenistan': '土库曼斯坦', 'Uganda': '乌干达', 'Ukraine': '乌克兰', 'United Arab Emirates': '阿联酋', 'United Kingdom': '英国', 'United States': '美国', 'Uruguay': '乌拉圭', 'Uzbekistan': '乌兹别克斯坦', 'Vanuatu': '瓦努阿图', 'Venezuela': '委内瑞拉', 'Vietnam': '越南', 'West Bank': '西岸', 'W. Sahara': '西撒哈拉', 'Yemen': '也门', 'Zambia': '赞比亚', 'Zimbabwe': '津巴布韦' };
+
+        function loadCloudData() {
+            fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } })
+            .then(res => res.json())
+            .then(data => {
+                let record = data.record;
+                myBookData = (record.books || (!record.favorites && !record.books) ? record : {});
+                if(!record.favorites && !record.books && Object.keys(record).length > 0) { myBookData = record; }
+                if(record.favorites) favoriteDrinks = record.favorites;
+                if(record.books) myBookData = record.books;
+                updateUI();
+                updateCountryDropdown(); 
+                document.getElementById('loading-mask').style.display = 'none';
+                setTimeout(() => myChart.resize(), 500);
+            })
+            .catch(err => { console.error(err); document.getElementById('loading-text').innerText = "加载失败"; });
+        }
+
+        function saveCloudData() {
+            const payload = { books: myBookData, favorites: favoriteDrinks };
+            fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                body: JSON.stringify(payload)
+            }).then(res => res.json()).then(data => { console.log('Saved'); });
+        }
+
+        function getDrinkForBook(bookTitle, isMystery) {
+            let seed = 0;
+            for (let i = 0; i < bookTitle.length; i++) seed += bookTitle.charCodeAt(i);
+            const lowerTitle = bookTitle.toLowerCase();
+            let candidates = COCKTAIL_DB;
+            if(isMystery || lowerTitle.includes('杀') || lowerTitle.includes('死') || lowerTitle.includes('谜')) {
+                candidates = COCKTAIL_DB.filter(d => d.profile === 'bitter' || d.strength === 'strong');
+            } else if(lowerTitle.includes('爱') || lowerTitle.includes('梦') || lowerTitle.includes('婚')) {
+                candidates = COCKTAIL_DB.filter(d => d.profile === 'sweet');
+            }
+            if(candidates.length === 0) candidates = COCKTAIL_DB;
+            return candidates[seed % candidates.length]; 
+        }
+
+        function switchBarTab(tab) {
+            currentBarTab = tab;
+            document.querySelectorAll('.bar-nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.bar-view').forEach(el => el.classList.remove('active'));
+            const index = tab === 'random' ? 0 : tab === 'filter' ? 1 : 2;
+            document.querySelectorAll('.bar-nav-item')[index].classList.add('active');
+            document.getElementById('view-' + tab).classList.add('active');
+            if(tab === 'fav') renderFavorites();
+        }
+
+        function selectOpt(el, type, val) {
+            filterState[type] = val;
+            el.parentElement.querySelectorAll('.filter-opt').forEach(d => d.classList.remove('selected'));
+            el.classList.add('selected');
+        }
+
+        const NEEDY_PHRASES = ["Uploading Mental State...", "Doping Internet...", "Increasing Stress...", "Seeking Approval...", "Deleting Bad Comments...", " overdose.exe running...", "✝ A M E N ✝"];
+
+        function playMixingAnimation(book, drink) {
+            const overlay = document.getElementById('mixing-overlay');
+            const mixBar = document.getElementById('mix-bar');
+            const mixText = document.getElementById('mix-text');
+            const revealIcon = document.getElementById('big-reveal-icon');
+            
+            overlay.classList.add('active');
+            mixBar.style.width = '0%';
+            revealIcon.classList.remove('popping');
+            revealIcon.innerHTML = getGlassIcon(drink.glass); 
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 5;
+                mixBar.style.width = progress + '%';
+                if(progress % 20 === 0) {
+                    mixText.innerText = NEEDY_PHRASES[Math.floor(Math.random() * NEEDY_PHRASES.length)];
+                }
+                if(progress >= 100) {
+                    clearInterval(interval);
+                    mixText.innerText = "✨ PRESCRIPTION READY ✨";
+                    revealIcon.classList.add('popping');
+                    setTimeout(() => {
+                        overlay.classList.remove('active');
+                        showDrinkCard(book, drink); 
+                    }, 800); 
+                }
+            }, 80); 
+        }
+
+        function serveRandomDrink() {
+            let allBooks = [];
+            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(b));
+            if(allBooks.length === 0) return alert("书架是空的，先去记录几本书吧！");
+            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+            const bookObj = getBookObject(randomBook);
+            const drink = getDrinkForBook(bookObj.title, bookObj.isMystery);
+            playMixingAnimation(bookObj, drink);
+        }
+
+        function serveFilteredDrink() {
+            let allBooks = [];
+            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(getBookObject(b)));
+            let validDrinks = COCKTAIL_DB.filter(d => {
+                let matchTaste = filterState.taste === 'any' || d.profile === filterState.taste;
+                let matchStrength = filterState.strength === 'any' || d.strength === filterState.strength;
+                let matchBase = filterState.base === 'any' || d.base.toLowerCase() === filterState.base.toLowerCase();
+                return matchTaste && matchStrength && matchBase;
+            });
+            if(validDrinks.length === 0) return alert("酒单中没有符合这种刁钻口味的配方...");
+            if(allBooks.length === 0) return alert("没有书可做酒了。");
+            const targetDrinkBase = validDrinks[Math.floor(Math.random() * validDrinks.length)];
+            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+            playMixingAnimation(randomBook, targetDrinkBase);
+        }
+
+        function showDrinkCard(book, forcedDrink = null) {
+            currentBookForDrink = book;
+            const drink = forcedDrink || getDrinkForBook(book.title, book.isMystery);
+            let displayIntro = drink.intro;
+            let displayIngredients = drink.materials;
+            let displayMethod = drink.method;
+            if (book.customDrink) {
+                displayIntro = book.customDrink.intro || drink.intro;
+                displayIngredients = book.customDrink.ingredients || drink.materials;
+                displayMethod = book.customDrink.method || drink.method;
+            }
+            document.getElementById('card-title').innerText = book.title;
+            document.getElementById('card-base').innerText = drink.base.toUpperCase() + ' BASE';
+            document.getElementById('card-icon').innerText = getGlassIcon(drink.glass);
+            document.getElementById('card-intro').innerText = displayIntro;
+            document.getElementById('card-ingredients').innerText = displayIngredients;
+            document.getElementById('card-method').innerText = displayMethod;
+            document.getElementById('card-glass').innerText = drink.glass;
+            let tags = `<span class="tag-pill">${drink.profile}</span><span class="tag-pill">${drink.strength}</span>`;
+            if(book.isMystery) tags += `<span class="tag-pill" style="background:var(--needy-dark-pink);color:#fff;">✝ Mystery ✝</span>`;
+            document.getElementById('card-tags').innerHTML = tags;
+            updateFavIconState();
+            document.getElementById('drink-overlay').classList.add('show');
+        }
+
+        function saveCurrentCard() {
+            if (!currentBookForDrink) return;
+            const newIntro = document.getElementById('card-intro').innerText;
+            const newIngredients = document.getElementById('card-ingredients').innerText;
+            const newMethod = document.getElementById('card-method').innerText;
+            let found = false;
+            for (let country in myBookData) {
+                const list = myBookData[country];
+                for (let i = 0; i < list.length; i++) {
+                    if (list[i].title === currentBookForDrink.title) {
+                        if (!list[i].customDrink) list[i].customDrink = {};
+                        list[i].customDrink.intro = newIntro;
+                        list[i].customDrink.ingredients = newIngredients;
+                        list[i].customDrink.method = newMethod;
+                        currentBookForDrink.customDrink = list[i].customDrink;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+            if (found) {
+                saveCloudData();
+                const btn = document.getElementById('btn-save');
+                btn.classList.add('saved'); 
+                setTimeout(() => { btn.classList.remove('saved'); }, 2000);
+            } else {
+                alert("保存失败：未找到原始书籍记录。");
+            }
+        }
+
+        function downloadCard() {
+            const card = document.getElementById('capture-target');
+            const closeBtn = document.querySelector('.card-close');
+            const actions = document.querySelector('.card-actions');
+            closeBtn.style.display = 'none';
+            actions.style.display = 'none';
+            html2canvas(card, { backgroundColor: "#c0c0c0", scale: 2 }).then(canvas => {
+                closeBtn.style.display = 'block';
+                actions.style.display = 'flex';
+                const link = document.createElement('a');
+                link.download = `AngelDose-${currentBookForDrink.title}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function closeDrinkCard() {
+            document.getElementById('drink-overlay').classList.remove('show');
+        }
+
+        function getGlassIcon(glass) {
+            if(glass === 'Martini') return '🍸';
+            if(glass === 'Rocks') return '🥃';
+            if(glass === 'Wine') return '🍷';
+            if(glass === 'Coupe') return '🥂';
+            if(glass === 'Highball') return '🍹';
+            return '🍺';
+        }
+
+        function toggleFavorite() {
+            if(!currentBookForDrink) return;
+            const title = currentBookForDrink.title;
+            const idx = favoriteDrinks.indexOf(title);
+            if(idx === -1) { favoriteDrinks.push(title); } else { favoriteDrinks.splice(idx, 1); }
+            updateFavIconState();
+            saveCloudData(); 
+            if(currentBarTab === 'fav') renderFavorites(); 
+        }
+
+        function updateFavIconState() {
+            const btn = document.getElementById('btn-fav');
+            if(currentBookForDrink && favoriteDrinks.includes(currentBookForDrink.title)) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('fav-container');
+            container.innerHTML = '';
+            if(favoriteDrinks.length === 0) {
+                container.innerHTML = '<div class="empty-tip" style="color:var(--needy-dark-pink)">No files found...</div>';
+                return;
+            }
+            let allBooksMap = {};
+            for(let c in myBookData) myBookData[c].forEach(b => allBooksMap[getBookObject(b).title] = getBookObject(b));
+            favoriteDrinks.forEach(title => {
+                const book = allBooksMap[title];
+                if(book) {
+                    const drink = getDrinkForBook(title, book.isMystery);
+                    const div = document.createElement('div');
+                    div.className = 'fav-item';
+                    div.onclick = () => showDrinkCard(book);
+                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:var(--fusion-text);">${drink.base}</div>`;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function toggleSidebar() {
+            const wrapper = document.getElementById('control-panel-wrapper');
+            const btn = document.getElementById('toggle-sidebar-btn');
+            wrapper.classList.toggle('collapsed');
+            btn.innerHTML = wrapper.classList.contains('collapsed') ? '◀' : '▶';
+            setTimeout(() => { myChart.resize(); }, 350); 
+        }
+
+        function toggleMysteryMode() {
+            isMysteryMode = document.getElementById('mystery-toggle').checked;
+            document.body.classList.toggle('mystery-mode', isMysteryMode);
+            updateUI(document.getElementById('country-select').value);
+        }
+
+        function toggleBarMode() {
+            isBarMode = document.getElementById('bar-toggle').checked;
+            document.body.classList.toggle('bar-mode', isBarMode);
+            if(!isBarMode) setTimeout(() => myChart.resize(), 100);
+        }
+
+        function openBarForBook(country, index) {
+            document.getElementById('bar-toggle').checked = true;
+            toggleBarMode();
+            const book = getBookObject(myBookData[country][index]);
+            showDrinkCard(book);
+        }
+
+        function filterList() {
+            const selected = document.getElementById('country-select').value;
+            updateUI(selected);
+        }
+
+        function updateUI(filterCountry = "") {
+            const listContainer = document.getElementById('book-list-display');
+            listContainer.innerHTML = '';
+            let displayData = {};
+            for (let c in myBookData) {
+                let books = myBookData[c].map(b => getBookObject(b));
+                if (isMysteryMode) books = books.filter(b => b.isMystery);
+                if (books.length > 0) displayData[c] = books;
+            }
+            if (Object.keys(displayData).length === 0) {
+                listContainer.innerHTML = `<div style="text-align:center;color:var(--text-light);margin-top:20px;font-size:13px;">暂无记录</div>`;
+                renderMap(displayData, filterCountry);
+                return;
+            }
+            const sortedCountries = Object.keys(displayData).sort((a,b) => displayData[b].length - displayData[a].length);
+            for (let country of sortedCountries) {
+                if (filterCountry && country !== filterCountry) continue;
+                const div = document.createElement('div');
+                div.className = 'country-item';
+                let booksHtml = '';
+                displayData[country].forEach((b, i) => {
+                    let originalIndex = myBookData[country].findIndex(origin => getBookObject(origin).title === b.title);
+                    let safeCountry = country.replace(/'/g, "\\'");
+                    let coverHtml = b.cover ? `<img src="${b.cover}" class="book-cover">` : `<div class="book-cover" style="display:flex;align-items:center;justify-content:center;color:#ccc;font-size:20px;">📖</div>`;
+                    let tagHtml = b.isMystery ? `<span class="mystery-tag">🕵️</span>` : ``;
+                    booksHtml += `
+                        <div class="book-row">
+                            ${coverHtml}
+                            <div class="book-info">
+                                <div class="book-title">${b.title} ${tagHtml}</div>
+                                <div class="book-meta"><span>${b.author || '未知'}</span></div>
+                            </div>
+                            <div class="btn-group">
+                                <span class="action-btn bar-btn" onclick="openBarForBook('${safeCountry}', ${originalIndex})">🍸</span>
+                                <span class="action-btn edit-btn" onclick="editBook('${safeCountry}', ${originalIndex})">✎</span>
+                                <span class="action-btn delete-btn" onclick="deleteBook('${safeCountry}', ${originalIndex})">×</span>
+                            </div>
+                        </div>`;
+                });
+                div.innerHTML = `<div class="country-head"><span>${country}</span><span style="color:var(--primary-color)">${displayData[country].length}</span></div>${booksHtml}`;
+                listContainer.appendChild(div);
+            }
+            renderMap(displayData, filterCountry);
+        }
+
+        function getBookObject(item) {
+            if (typeof item === 'string') return { title: item, author: "", cover: "", isMystery: false };
+            return item;
+        }
+
+        function addBook() {
+            const country = document.getElementById('country-select').value;
+            const bookName = document.getElementById('book-name').value.trim();
+            if (!country) { alert("请先选择一个国家"); return; }
+            if (!bookName) { alert("请输入书名"); return; }
+            const btn = document.getElementById('add-btn');
+            btn.disabled = true; btn.innerText = "🔍 搜寻中...";
+            fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(bookName)}&langRestrict=zh&maxResults=1`)
+                .then(response => response.json()).then(data => {
+                    let newBook = { title: bookName, author: "未知作者", cover: "", isMystery: false }; 
+                    if (data.items && data.items.length > 0) {
+                        const info = data.items[0].volumeInfo;
+                        const apiTitle = info.title || "";
+                        if (apiTitle.includes(bookName)) {
+                            newBook.title = info.title || bookName;
+                            newBook.author = (info.authors && info.authors.length > 0) ? info.authors[0] : "未知作者";
+                            newBook.cover = (info.imageLinks && info.imageLinks.smallThumbnail) ? info.imageLinks.smallThumbnail : "";
+                            const categories = info.categories || [];
+                            const description = info.description || "";
+                            const title = info.title || "";
+                            const mysteryKeywords = ["Mystery", "Detective", "Crime", "Thriller", "Suspense", "Noir", "推理", "悬疑", "侦探", "凶杀", "解谜", "探案", "惊悚", "犯罪"];
+                            newBook.isMystery = mysteryKeywords.some(keyword => {
+                                return categories.some(c => c.includes(keyword)) || title.includes(keyword) || description.includes(keyword);
+                            });
+                        }
+                    }
+                    if (!myBookData[country]) myBookData[country] = [];
+                    myBookData[country].push(newBook);
+                    document.getElementById('book-name').value = '';
+                    btn.disabled = false; btn.innerText = "✨ 智能记录";
+                    saveCloudData(); 
+                    filterList(); 
+                })
+                .catch(err => {
+                    if (!myBookData[country]) myBookData[country] = [];
+                    myBookData[country].push({ title: bookName, author: "", cover: "", isMystery: false });
+                    document.getElementById('book-name').value = '';
+                    btn.disabled = false; btn.innerText = "✨ 智能记录";
+                    saveCloudData();
+                    filterList();
+                });
+        }
+
+        function editBook(country, index) {
+            const bookObj = getBookObject(myBookData[country][index]);
+            const newName = prompt("📝 修改书名:", bookObj.title);
+            if (newName === null) return;
+            const newIsMystery = confirm(`这本书是【悬疑/推理】类吗？\n\n点击“确定”标记为悬疑。\n点击“取消”标记为普通。`);
+            const newCountry = prompt("🌍 修改国家 (如果要移动请修改):", country);
+            if (newCountry === null) return;
+            bookObj.title = newName;
+            bookObj.isMystery = newIsMystery;
+            if (newCountry !== country) {
+                myBookData[country].splice(index, 1);
+                if (myBookData[country].length === 0) delete myBookData[country];
+                if (!myBookData[newCountry]) myBookData[newCountry] = [];
+                myBookData[newCountry].push(bookObj);
+            } else {
+                myBookData[country][index] = bookObj;
+            }
+            saveCloudData();
+            filterList();
+        }
+
+        function deleteBook(country, index) {
+            const bookObj = getBookObject(myBookData[country][index]);
+            if (confirm(`删除《${bookObj.title}》？`)) {
+                myBookData[country].splice(index, 1);
+                if (myBookData[country].length === 0) delete myBookData[country];
+                saveCloudData();
+                filterList();
+            }
+        }
+
+        function updateCountryDropdown() {
+            const select = document.getElementById('country-select');
+            const currentSelected = select.value; 
+            let sortedList = allCountryList.map(name => {
+                return { name: name, count: (myBookData[name] && myBookData[name].length > 0) ? myBookData[name].length : 0 };
+            });
+            sortedList.sort((a, b) => {
+                if (b.count !== a.count) return b.count - a.count;
+                return a.name.localeCompare(b.name, 'zh');
+            });
+            select.innerHTML = '<option value="">-- 显示全部 --</option>';
+            [...sortedList.slice(0,5), ...sortedList.slice(5).sort((a,b)=>a.name.localeCompare(b.name,'zh'))].forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.name;
+                option.textContent = item.name; 
+                select.appendChild(option);
+            });
+            if (currentSelected) select.value = currentSelected;
+        }
+
+        function renderMap(filteredData, highlightCountry = "") {
+            if (!geoJsonData) return;
+            const mapData = [];
+            let maxBookCount = 0;
+            const defaultAreaColor = isMysteryMode ? '#37474f' : '#f7fcf5';
+            const defaultBorderColor = isMysteryMode ? '#546e7a' : '#eceff1';
+            const hoverStyle = { shadowBlur: 15, shadowColor: 'rgba(0, 0, 0, 0.5)', shadowOffsetY: 8, shadowOffsetX: 4 };
+            const selectedStyle = { areaColor: isMysteryMode ? '#7e57c2' : '#ffeb3b', borderColor: defaultBorderColor, borderWidth: 0.5, ...hoverStyle };
+            for (let country in filteredData) {
+                const count = filteredData[country].length;
+                if (count > maxBookCount) maxBookCount = count;
+                let itemStyle;
+                if (highlightCountry && country === highlightCountry) { itemStyle = selectedStyle; } else { itemStyle = { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }; }
+                mapData.push({ name: country, value: count, books: filteredData[country], itemStyle: itemStyle });
+            }
+            if (highlightCountry && !filteredData[highlightCountry]) { mapData.push({ name: highlightCountry, value: 0, books: [], itemStyle: selectedStyle }); }
+            if (maxBookCount < 5) maxBookCount = 5;
+            const forestColors = [{min: 50, label: '50+', color: '#005a32'}, {min: 20, max: 49, label: '20-49', color: '#238b45'}, {min: 10, max: 19, label: '10-19', color: '#41ab5d'}, {min: 5, max: 9, label: '5-9', color: '#74c476'}, {min: 1, max: 4, label: '1-4', color: '#bae4b3'}];
+            const mysteryColors = [{min: 50, label: '50+', color: '#311b92'}, {min: 20, max: 49, label: '20-49', color: '#4527a0'}, {min: 10, max: 19, label: '10-19', color: '#673ab7'}, {min: 5, max: 9, label: '5-9', color: '#9575cd'}, {min: 1, max: 4, label: '1-4', color: '#d1c4e9'}];
+            const option = {
+                backgroundColor: 'transparent',
+                visualMap: { type: 'piecewise', left: 'left', top: 'bottom', text: [isMysteryMode ? '悬疑含量' : '阅读量', ''], pieces: isMysteryMode ? mysteryColors : forestColors, textStyle: { color: isMysteryMode ? '#b39ddb' : '#5d4037' }, },
+                tooltip: {
+                    trigger: 'item', backgroundColor: isMysteryMode ? 'rgba(50, 50, 50, 0.9)' : '#ffffff', borderColor: isMysteryMode ? '#9575cd' : '#74c476', borderWidth: 1, textStyle: { color: isMysteryMode ? '#fff' : '#37474f' },
+                    formatter: (p) => {
+                        if (!p.value) return p.name;
+                        if (p.data && p.data.books && p.data.books.length > 0) {
+                            let bookListStr = p.data.books.slice(0, 8).map(b=>'• '+b.title).join('<br/>');
+                            if(p.data.books.length > 8) bookListStr += '<br/>...等 ' + p.data.books.length + ' 本';
+                            return `<div style="padding:5px;"><strong>${p.name}</strong><br/><span style="font-size:12px;opacity:0.8">已读：${p.value}</span><br/>${bookListStr}</div>`;
+                        }
+                        return p.name;
+                    }
+                },
+                series: [{ type: 'map', map: 'world', nameMap: nameMap, roam: true, zoom: 1.2, itemStyle: { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }, emphasis: { label: { show: true, color: isMysteryMode ? '#fff' : '#01579b', fontWeight: 'bold' }, itemStyle: hoverStyle }, data: mapData }]
+            };
+            myChart.setOption(option);
+        }
+
+        fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/world.json')
+            .then(res => res.json()).then(json => { 
+                geoJsonData = json; 
+                echarts.registerMap('world', json); 
+                myChart.on('click', function(params) {
+                    const select = document.getElementById('country-select');
+                    select.value = params.name;
+                    filterList();
+                });
+                const uniqueCountries = new Set(Object.values(nameMap));
+                allCountryList = Array.from(uniqueCountries).sort((a, b) => a.localeCompare(b, 'zh'));
+                loadCloudData(); 
+            });
+        window.addEventListener('resize', () => myChart.resize());
+    </script>
+</body>
+</html>
