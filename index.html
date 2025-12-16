@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的世界阅读记录 - 赛博天使手机版</title>
+    <title>我的世界阅读记录 - 赛博天使终极版</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
     <style>
-        /* --- 🎨 核心配色 --- */
         :root {
             --primary-color: #7cb342; 
             --bg-main: #cbe3f7;
             --bg-panel: #ffffff;
             --text-dark: #5d4037;      
             
-            /* ✝⚡ 融合风格变量 */
+            /* ✝⚡ 赛博天使变量 */
             --fusion-bg: #0d0221;
             --fusion-pink: #ff00ff;
             --fusion-cyan: #00ffff;
@@ -31,57 +30,49 @@
             --retro-border-color-inset: #808080 #ffffff #ffffff #808080;
         }
 
-        /* 基础样式 */
-        body { margin: 0; padding: 0; background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; height: 100vh; overflow: hidden; transition: background-color 0.5s ease; }
-        #left-stage { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
-        #map-container { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 1; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; transform: scale(1); visibility: visible; }
-        #main { width: 100%; height: 100%; }
+        /* 基础布局 - 强制占满全屏 */
+        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+        body { background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; }
+        
+        /* 左侧舞台 (地图) */
+        #left-stage { 
+            flex: 1; 
+            position: relative; 
+            width: 100%; 
+            height: 100vh; /* 强制高度 */
+            overflow: hidden; 
+        }
+        
+        /* 地图容器 - 绝对定位确保撑开 */
+        #map-container { 
+            width: 100%; height: 100%; 
+            position: absolute; top: 0; left: 0; 
+            z-index: 1; 
+            transition: opacity 0.5s ease, transform 0.5s ease; 
+            opacity: 1; transform: scale(1); visibility: visible; 
+        }
+        #main { width: 100%; height: 100%; min-height: 100vh; }
 
-        /* =========================================
-           ✝⚡ UI 层
-           ========================================= */
+        /* UI 层 */
         #bar-interface {
             width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 10;
             background-color: var(--fusion-bg);
-            background-image: 
-                linear-gradient(rgba(189, 0, 255, 0.2) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(189, 0, 255, 0.2) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(189, 0, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(189, 0, 255, 0.2) 1px, transparent 1px);
             background-size: 30px 30px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.1);
-            transition: all 0.2s steps(5);
-            color: var(--fusion-text); padding-top: 40px; box-sizing: border-box;
-            font-family: var(--font-body);
+            transition: all 0.2s steps(5); color: var(--fusion-text); padding-top: 40px; box-sizing: border-box; font-family: var(--font-body);
         }
-        #bar-interface::before {
-            content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
-        }
+        #bar-interface::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none; }
 
         body.bar-mode #map-container { opacity: 0; transform: scale(0.9); visibility: hidden; }
         body.bar-mode #bar-interface { opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1); }
 
-        .cyber-window {
-            background: var(--fusion-win-bg);
-            border: 2px solid var(--fusion-pink);
-            box-shadow: 6px 6px 0px rgba(0,255,255,0.3);
-            position: relative; padding-top: 25px;
-        }
-        .cyber-window::before {
-            content: '♥ SYSTEM_OVERRIDE ♥';
-            position: absolute; top: 0; left: 0; right: 0; height: 22px;
-            background: linear-gradient(90deg, var(--fusion-pink), var(--fusion-purple));
-            color: white; font-family: var(--font-title); font-size: 10px;
-            display: flex; align-items: center; padding-left: 5px;
-            border-bottom: 2px solid var(--fusion-pink);
-        }
+        .cyber-window { background: var(--fusion-win-bg); border: 2px solid var(--fusion-pink); box-shadow: 6px 6px 0px rgba(0,255,255,0.3); position: relative; padding-top: 25px; }
+        .cyber-window::before { content: '♥ SYSTEM_OVERRIDE ♥'; position: absolute; top: 0; left: 0; right: 0; height: 22px; background: linear-gradient(90deg, var(--fusion-pink), var(--fusion-purple)); color: white; font-family: var(--font-title); font-size: 10px; display: flex; align-items: center; padding-left: 5px; border-bottom: 2px solid var(--fusion-pink); }
 
         .bar-nav { display: flex; gap: 10px; margin-bottom: 30px; z-index: 20; }
-        .bar-nav-item {
-            padding: 8px 12px; background: #000; border: 2px solid var(--fusion-cyan); color: var(--fusion-cyan);
-            cursor: pointer; font-family: var(--font-title); font-size: 12px; box-shadow: 3px 3px 0 var(--fusion-purple); transition: 0.1s;
-        }
+        .bar-nav-item { padding: 8px 12px; background: #000; border: 2px solid var(--fusion-cyan); color: var(--fusion-cyan); cursor: pointer; font-family: var(--font-title); font-size: 12px; box-shadow: 3px 3px 0 var(--fusion-purple); transition: 0.1s; }
         .bar-nav-item.active { background: var(--fusion-pink); color: #fff; border-color: #fff; box-shadow: 3px 3px 0 #fff; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
 
@@ -89,72 +80,33 @@
         .bar-view { display: none; width: 100%; flex-direction: column; align-items: center; width: 90%; }
         .bar-view.active { display: flex; }
 
-        .neon-sign {
-            font-family: var(--font-title); font-size: 2rem; color: #fff;
-            text-shadow: 4px 0 var(--fusion-pink), -4px 0 var(--fusion-cyan);
-            margin-bottom: 15px; text-align: center; line-height: 1.5; animation: glitchText 0.3s infinite;
-        }
+        .neon-sign { font-family: var(--font-title); font-size: 2rem; color: #fff; text-shadow: 4px 0 var(--fusion-pink), -4px 0 var(--fusion-cyan); margin-bottom: 15px; text-align: center; line-height: 1.5; animation: glitchText 0.3s infinite; }
         @keyframes glitchText { 0% { transform: skew(0deg); } 20% { transform: skew(-2deg); } 40% { transform: skew(2deg); } 60% { transform: skew(-1deg); } 80% { transform: skew(1deg); } 100% { transform: skew(0deg); } }
 
-        .random-btn {
-            margin-top: 30px; width: 200px; height: 80px; background: #000; border: 4px solid var(--fusion-pink);
-            box-shadow: 0 0 20px var(--fusion-pink), inset 0 0 20px var(--fusion-pink);
-            color: var(--fusion-pink); font-family: var(--font-title); font-size: 14px; cursor: pointer;
-            transition: all 0.1s; position: relative; overflow: hidden; text-transform: uppercase;
-        }
+        .random-btn { margin-top: 30px; width: 200px; height: 80px; background: #000; border: 4px solid var(--fusion-pink); box-shadow: 0 0 20px var(--fusion-pink), inset 0 0 20px var(--fusion-pink); color: var(--fusion-pink); font-family: var(--font-title); font-size: 14px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; text-transform: uppercase; }
         .random-btn::before { content: ">> INJECT <<"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
         .random-btn:hover { background: var(--fusion-pink); color: #fff; box-shadow: 0 0 40px var(--fusion-pink); }
         .random-btn:active { transform: scale(0.95); }
 
-        .filter-group {
-            background: rgba(0, 0, 0, 0.8); border: 1px solid var(--fusion-cyan);
-            box-shadow: 5px 5px 0 var(--fusion-purple); position: relative; padding: 20px; margin-bottom: 20px; width: 100%; box-sizing: border-box;
-        }
+        .filter-group { background: rgba(0, 0, 0, 0.8); border: 1px solid var(--fusion-cyan); box-shadow: 5px 5px 0 var(--fusion-purple); position: relative; padding: 20px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
         .filter-title { color: var(--fusion-pink); font-family: var(--font-title); font-size: 12px; margin-bottom: 10px; display: block; border-bottom: 1px dashed var(--fusion-cyan); padding-bottom: 5px; }
         .filter-options { display: flex; gap: 8px; flex-wrap: wrap; }
         .filter-opt { padding: 5px 10px; border: 1px solid #555; background: #111; cursor: pointer; color: #aaa; transition: 0.2s; font-family: var(--font-body); font-size: 18px; }
         .filter-opt.selected { background: var(--fusion-cyan); color: #000; border-color: var(--fusion-cyan); font-weight: bold; }
 
-        .produce-btn {
-            width: 100%; padding: 15px; background: linear-gradient(90deg, #b00b69, #4b0082);
-            border: 2px solid #fff; color: #fff; font-family: var(--font-title); font-size: 14px;
-            cursor: pointer; margin-top: 15px; box-shadow: 0 0 15px rgba(255,255,255,0.5); text-shadow: 2px 2px 0 #000; 
-        }
+        .produce-btn { width: 100%; padding: 15px; background: linear-gradient(90deg, #b00b69, #4b0082); border: 2px solid #fff; color: #fff; font-family: var(--font-title); font-size: 14px; cursor: pointer; margin-top: 15px; box-shadow: 0 0 15px rgba(255,255,255,0.5); text-shadow: 2px 2px 0 #000; }
 
         .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 0; }
-        .fav-item {
-            background: rgba(0,0,0,0.5); border: 1px solid var(--fusion-cyan); padding: 15px;
-            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
-        }
+        .fav-item { background: rgba(0,0,0,0.5); border: 1px solid var(--fusion-cyan); padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; }
         .fav-icon { font-size: 32px; margin-bottom: 5px; }
         .fav-name { font-size: 16px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; font-family: var(--font-body);}
 
         /* 饮品卡 */
-        .drink-card-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px);
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50;
-        }
+        .drink-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50; }
         .drink-card-overlay.show { opacity: 1; pointer-events: auto; }
-        
-        .drink-card {
-            background: #c0c0c0; width: 400px; max-width: 90%; padding: 40px 20px 20px 20px;
-            border-top: 2px solid #fff; border-left: 2px solid #fff;
-            border-bottom: 2px solid #000; border-right: 2px solid #000;
-            box-shadow: 15px 15px 0px rgba(0,0,0,0.5);
-            position: relative; text-align: center; color: #000;
-            transform: scale(0.8); opacity: 0; transition: all 0.3s;
-            font-family: var(--font-body); border: 4px solid red;
-            max-height: 85vh; overflow-y: auto;
-        }
+        .drink-card { background: #c0c0c0; width: 400px; max-width: 90%; padding: 40px 20px 20px 20px; border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #000; border-right: 2px solid #000; box-shadow: 15px 15px 0px rgba(0,0,0,0.5); position: relative; text-align: center; color: #000; transform: scale(0.8); opacity: 0; transition: all 0.3s; font-family: var(--font-body); border: 4px solid red; max-height: 85vh; overflow-y: auto; }
         .drink-card-overlay.show .drink-card { transform: scale(1); opacity: 1; }
-        .drink-card::before {
-            content: 'ERROR: DRINK_FOUND'; position: absolute; top: 4px; left: 4px; right: 4px; height: 25px;
-            background: navy; color: white; font-family: var(--font-body); font-weight: bold; font-size: 16px;
-            display: flex; align-items: center; padding-left: 5px;
-        }
-
+        .drink-card::before { content: 'ERROR: DRINK_FOUND'; position: absolute; top: 4px; left: 4px; right: 4px; height: 25px; background: navy; color: white; font-family: var(--font-body); font-weight: bold; font-size: 16px; display: flex; align-items: center; padding-left: 5px; }
         .card-close { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; background: #c0c0c0; border: 1px solid #000; text-align: center; cursor: pointer; color: #000; z-index: 2; font-weight: bold; line-height: 18px;}
         .card-glass-icon { font-size: 70px; margin: 10px 0; display: inline-block; filter: drop-shadow(4px 4px 0 var(--fusion-pink)); }
         .card-title { font-family: var(--font-title); font-size: 16px; margin-bottom: 5px; color: #000; text-shadow: 2px 2px 0 #fff; line-height: 1.4; }
@@ -166,8 +118,11 @@
         .card-actions { position: absolute; top: 35px; left: 20px; display: flex; gap: 8px; }
         .action-icon-btn { font-size: 18px; cursor: pointer; color: #000; background: #c0c0c0; border: 1px solid #fff; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
         .action-icon-btn.active { background: #ffff00; } .action-icon-btn.saved { background: #00ff00; }
+        [contenteditable="true"] { border: 1px dashed transparent; transition: all 0.3s; padding: 2px 5px; border-radius: 4px; }
+        [contenteditable="true"]:hover { border-color: #555; background: rgba(0,0,0,0.05); cursor: text; }
+        [contenteditable="true"]:focus { border-color: red; background: #ffffcc; outline: none; }
 
-        /* 动画层 */
+        /* Animation */
         #mixing-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--fusion-bg); z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         #mixing-overlay.active { opacity: 1; pointer-events: auto; }
         .mixing-bowl { width: 150px; height: 150px; position: relative; margin-bottom: 40px; }
@@ -179,42 +134,52 @@
         #big-reveal-icon { font-size: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: drop-shadow(5px 5px 0 #fff); color: var(--fusion-pink); transition: all 0.3s; }
         #big-reveal-icon.popping { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-        /* 侧边栏/控制台 */
+        /* Panel & Sidebar (Desktop) */
         #control-panel-wrapper { position: relative; flex: 0 0 360px; width: 360px; height: 100%; z-index: 100; transition: all 0.3s ease-in-out; margin-right: 0; }
         #control-panel-wrapper.collapsed { margin-right: -360px; }
         #control-panel-body { width: 100%; height: 100%; background-color: var(--bg-panel); box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
-        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; }
         
-        /* 📱 手机端适配 (核心修改) */
+        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; }
+        #toggle-sidebar-btn:hover { filter: brightness(0.95); }
+
+        /* 📱 Mobile Responsive (Fixed) */
         @media (max-width: 768px) {
             body { flex-direction: column; overflow: hidden; }
-            #left-stage { width: 100%; height: 100vh; flex: none; }
             
-            /* 控制面板改为底部抽屉 */
+            /* 1. Map container takes full screen */
+            #left-stage { 
+                position: fixed; 
+                top: 0; left: 0; width: 100%; height: 100vh; 
+                z-index: 1; 
+            }
+            #map-container, #main { width: 100%; height: 100%; }
+
+            /* 2. Bottom Drawer */
             #control-panel-wrapper {
                 position: fixed; bottom: 0; left: 0; width: 100%; height: 85vh;
                 margin-right: 0; z-index: 2000;
                 transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-                transform: translateY(0);
+                transform: translateY(0); /* Active/Show */
             }
             #control-panel-wrapper.collapsed {
-                margin-right: 0; transform: translateY(110%);
+                margin-right: 0; transform: translateY(110%); /* Hidden */
             }
             #control-panel-body {
                 border-radius: 20px 20px 0 0; padding: 20px;
                 border-top: 4px solid var(--fusion-pink);
             }
 
-            /* 开关按钮：右下角 FAB */
+            /* 3. FAB Button (Fixed positioning outside wrapper context) */
             #toggle-sidebar-btn {
-                position: fixed; bottom: 30px; right: 25px; left: auto; top: auto;
-                transform: none !important; width: 60px; height: 60px; border-radius: 50%; font-size: 24px;
-                background: #000; border: 2px solid var(--fusion-cyan); box-shadow: 0 0 15px var(--fusion-pink);
+                position: fixed; bottom: 30px; right: 25px; 
+                left: auto; top: auto; transform: none !important;
+                width: 60px; height: 60px; border-radius: 50%; font-size: 24px;
+                background: #000; border: 2px solid var(--fusion-cyan); 
+                box-shadow: 0 0 15px var(--fusion-pink);
                 color: transparent; z-index: 2001;
             }
-            /* 按钮图标 */
-            #control-panel-wrapper.collapsed ~ #toggle-sidebar-btn::before { content: "▲"; color: var(--fusion-cyan); font-size: 24px;} 
-            #control-panel-wrapper:not(.collapsed) ~ #toggle-sidebar-btn::before { content: "▼"; color: var(--fusion-cyan); font-size: 24px;}
+            #toggle-sidebar-btn.btn-expanded::before { content: "▼"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
+            #toggle-sidebar-btn:not(.btn-expanded)::before { content: "▲"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
         }
     </style>
 </head>
@@ -229,8 +194,9 @@
         
         <div id="bar-interface">
             <div id="mixing-overlay">
-                <div class="mixing-bowl"></div>
-                <div class="mix-progress-container"><div class="mix-progress-bar" id="mix-bar"></div></div>
+                <div class="mixing-bowl">
+                    <div class="mix-progress-container"><div class="mix-progress-bar" id="mix-bar"></div></div>
+                </div>
                 <div class="mix-text" id="mix-text">CONNECTING...</div>
                 <div id="big-reveal-icon"></div>
             </div>
@@ -244,7 +210,7 @@
             <div class="bar-content">
                 <div id="view-random" class="bar-view active" style="text-align: center;">
                     <div class="neon-sign">✝ CYBER<br>ANGEL BAR ✝</div>
-                    <div style="color:var(--fusion-pink); margin-bottom:30px; font-family:var(--font-body); font-size: 20px; font-weight: bold; text-shadow: 1px 1px #fff; background: rgba(0,0,0,0.5); padding: 5px;">"Is this reality or just another stream?"</div>
+                    <div style="color:var(--fusion-pink); margin-bottom:30px; font-family:var(--font-body); font-size: 22px; font-weight: bold; text-shadow: 1px 1px #fff;">"Is this reality or just another stream?"</div>
                     <button class="random-btn" onclick="serveRandomDrink()">💊 OVERDOSE 💊</button>
                 </div>
 
@@ -289,14 +255,17 @@
             <div class="drink-card-overlay" id="drink-overlay">
                 <div class="drink-card" id="capture-target">
                     <div class="card-actions">
-                        <button class="action-icon-btn" id="btn-fav" onclick="toggleFavorite()">★</button>
-                        <button class="action-icon-btn" id="btn-save" onclick="saveCurrentCard()">💾</button>
-                        <button class="action-icon-btn" id="btn-download" onclick="downloadCard()">📥</button>
+                        <button class="action-icon-btn" id="btn-fav" onclick="toggleFavorite()" title="Favorite">★</button>
+                        <button class="action-icon-btn" id="btn-save" onclick="saveCurrentCard()" title="Save">💾</button>
+                        <button class="action-icon-btn" id="btn-download" onclick="downloadCard()" title="Download">📥</button>
                     </div>
+
                     <div class="card-close" onclick="closeDrinkCard()">X</div>
+                    
                     <div class="card-glass-icon" id="card-icon">🍸</div>
                     <div class="card-title" id="card-title">Book Title</div>
                     <div class="card-subtitle" id="card-base">Base Spirit</div>
+                    
                     <div class="card-section">
                         <span class="card-label">COMMENT.txt</span>
                         <div class="card-text" id="card-intro" contenteditable="true" spellcheck="false">...</div>
@@ -316,8 +285,9 @@
         </div>
     </div>
 
+    <div id="toggle-sidebar-btn" onclick="toggleSidebar()">▶</div>
+    
     <div id="control-panel-wrapper">
-        <div id="toggle-sidebar-btn" onclick="toggleSidebar()">▶</div>
         <div id="control-panel-body">
             <h2>🌿 阅读记录</h2>
             <div class="mode-switch-container">
@@ -368,8 +338,19 @@
         var isMysteryMode = false; var isBarMode = false;
         var currentBarTab = 'random'; var currentBookForDrink = null; var favoriteDrinks = []; 
         var filterState = { taste: 'any', strength: 'any', base: 'any' };
-
         var nameMap = { 'Afghanistan': '阿富汗', 'Albania': '阿尔巴尼亚', 'Algeria': '阿尔及利亚', 'Andorra': '安道尔', 'Angola': '安哥拉', 'Antarctica': '南极洲', 'Antigua and Barb.': '安提瓜和巴布达', 'Argentina': '阿根廷', 'Armenia': '亚美尼亚', 'Australia': '澳大利亚', 'Austria': '奥地利', 'Azerbaijan': '阿塞拜疆', 'Bahamas': '巴哈马', 'Bahrain': '巴林', 'Bangladesh': '孟加拉国', 'Barbados': '巴巴多斯', 'Belarus': '白俄罗斯', 'Belgium': '比利时', 'Belize': '伯利兹', 'Benin': '贝宁', 'Bermuda': '百慕大', 'Bhutan': '不丹', 'Bolivia': '玻利维亚', 'Bosnia and Herz.': '波黑', 'Botswana': '博茨瓦纳', 'Brazil': '巴西', 'Brunei': '文莱', 'Bulgaria': '保加利亚', 'Burkina Faso': '布基纳法索', 'Burundi': '布隆迪', 'Cambodia': '柬埔寨', 'Cameroon': '喀麦隆', 'Canada': '加拿大', 'Cape Verde': '佛得角', 'Central African Rep.': '中非共和国', 'Chad': '乍得', 'Chile': '智利', 'China': '中国', 'Colombia': '哥伦比亚', 'Comoros': '科摩罗', 'Congo': '刚果共和国', 'Costa Rica': '哥斯达黎加', 'Croatia': '克罗地亚', 'Cuba': '古巴', 'Cyprus': '塞浦路斯', 'Czech Rep.': '捷克共和国', 'Côte d\'Ivoire': '科特迪瓦', 'Dem. Rep. Congo': '刚果民主共和国', 'Dem. Rep. Korea': '朝鲜', 'Denmark': '丹麦', 'Djibouti': '吉布提', 'Dominica': '多米尼克', 'Dominican Rep.': '多米尼加', 'Ecuador': '厄瓜多尔', 'Egypt': '埃及', 'El Salvador': '萨尔瓦多', 'Eq. Guinea': '赤道几内亚', 'Eritrea': '厄立特里亚', 'Estonia': '爱沙尼亚', 'Ethiopia': '埃塞俄比亚', 'Falkland Is.': '福克兰群岛', 'Fiji': '斐济', 'Finland': '芬兰', 'France': '法国', 'Fr. S. Antarctic Lands': '法属南半球和南极领地', 'Gabon': '加蓬', 'Gambia': '冈比亚', 'Georgia': '格鲁吉亚', 'Germany': '德国', 'Ghana': '加纳', 'Greece': '希腊', 'Greenland': '格陵兰', 'Grenada': '格林纳达', 'Guatemala': '危地马拉', 'Guinea': '几内亚', 'Guinea-Bissau': '几内亚比绍', 'Guyana': '圭亚那', 'Haiti': '海地', 'Honduras': '洪都拉斯', 'Hungary': '匈牙利', 'Iceland': '冰岛', 'India': '印度', 'Indonesia': '印度尼西亚', 'Iran': '伊朗', 'Iraq': '伊拉克', 'Ireland': '爱尔兰', 'Israel': '以色列', 'Italy': '意大利', 'Ivory Coast': '科特迪瓦', 'Jamaica': '牙买加', 'Japan': '日本', 'Jordan': '约旦', 'Kazakhstan': '哈萨克斯坦', 'Kenya': '肯尼亚', 'Korea': '韩国', 'Kosovo': '科索沃', 'Kuwait': '科威特', 'Kyrgyzstan': '吉尔吉斯斯坦', 'Lao PDR': '老挝', 'Latvia': '拉脱维亚', 'Lebanon': '黎巴嫩', 'Lesotho': '莱索托', 'Liberia': '利比里亚', 'Libya': '利比亚', 'Liechtenstein': '列支敦士登', 'Lithuania': '立陶宛', 'Luxembourg': '卢森堡', 'Madagascar': '马达加斯加', 'Malawi': '马拉维', 'Malaysia': '马来西亚', 'Mali': '马里', 'Malta': '马耳他', 'Mauritania': '毛里塔尼亚', 'Mauritius': '毛里求斯', 'Mexico': '墨西哥', 'Moldova': '摩尔多瓦', 'Monaco': '摩纳哥', 'Mongolia': '蒙古', 'Montenegro': '黑山', 'Morocco': '摩洛哥', 'Mozambique': '莫桑比克', 'Myanmar': '缅甸', 'Namibia': '纳米比亚', 'Nepal': '尼泊尔', 'Netherlands': '荷兰', 'New Zealand': '新西兰', 'Nicaragua': '尼加拉瓜', 'Niger': '尼日尔', 'Nigeria': '尼日利亚', 'North Korea': '朝鲜', 'North Macedonia': '北马其顿', 'Norway': '挪威', 'Oman': '阿曼', 'Pakistan': '巴基斯坦', 'Palestine': '巴勒斯坦', 'Panama': '巴拿马', 'Papua New Guinea': '巴布亚新几内亚', 'Paraguay': '巴拉圭', 'Peru': '秘鲁', 'Philippines': '菲律宾', 'Poland': '波兰', 'Portugal': '葡萄牙', 'Puerto Rico': '波多黎各', 'Qatar': '卡塔尔', 'Romania': '罗马尼亚', 'Russia': '俄罗斯', 'Rwanda': '卢旺达', 'S. Sudan': '南苏丹', 'Samoa': '萨摩亚', 'Saudi Arabia': '沙特阿拉伯', 'Senegal': '塞内加尔', 'Serbia': '塞尔维亚', 'Seychelles': '塞舌尔', 'Sierra Leone': '塞拉利昂', 'Singapore': '新加坡', 'Slovakia': '斯洛伐克', 'Slovenia': '斯洛文尼亚', 'Solomon Is.': '所罗门群岛', 'Somalia': '索马里', 'South Africa': '南非', 'South Korea': '韩国', 'South Sudan': '南苏丹', 'Spain': '西班牙', 'Sri Lanka': '斯里兰卡', 'Sudan': '苏丹', 'Suriname': '苏里南', 'Swaziland': '斯威士兰', 'Sweden': '瑞典', 'Switzerland': '瑞士', 'Syria': '叙利亚', 'Taiwan': '中国', 'Tajikistan': '塔吉克斯坦', 'Tanzania': '坦桑尼亚', 'Thailand': '泰国', 'Timor-Leste': '东帝汶', 'Togo': '多哥', 'Tonga': '汤加', 'Trinidad and Tobago': '特立尼达和多巴哥', 'Tunisia': '突尼斯', 'Turkey': '土耳其', 'Turkmenistan': '土库曼斯坦', 'Uganda': '乌干达', 'Ukraine': '乌克兰', 'United Arab Emirates': '阿联酋', 'United Kingdom': '英国', 'United States': '美国', 'Uruguay': '乌拉圭', 'Uzbekistan': '乌兹别克斯坦', 'Vanuatu': '瓦努阿图', 'Venezuela': '委内瑞拉', 'Vietnam': '越南', 'West Bank': '西岸', 'W. Sahara': '西撒哈拉', 'Yemen': '也门', 'Zambia': '赞比亚', 'Zimbabwe': '津巴布韦' };
+
+        // === 📱 手机端专用修复：初始化时自动收起面板 ===
+        function initMobileState() {
+            const wrapper = document.getElementById('control-panel-wrapper');
+            const btn = document.getElementById('toggle-sidebar-btn');
+            
+            if (window.innerWidth <= 768) {
+                wrapper.classList.add('collapsed');
+                btn.classList.remove('btn-expanded');
+            }
+        }
+        initMobileState();
 
         function loadCloudData() {
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } })
@@ -383,9 +364,15 @@
                 updateUI();
                 updateCountryDropdown(); 
                 document.getElementById('loading-mask').style.display = 'none';
+                
+                // 🔄 强制重绘，解决ECharts在隐藏容器中高度为0的问题
                 setTimeout(() => myChart.resize(), 500);
             })
-            .catch(err => { console.error(err); document.getElementById('loading-text').innerText = "加载失败"; });
+            .catch(err => { 
+                console.error(err); 
+                document.getElementById('loading-text').innerText = "Data Load Failed"; 
+                alert("Cloud Data Error: " + err); // 提示用户
+            });
         }
 
         function saveCloudData() {
@@ -426,7 +413,7 @@
             el.classList.add('selected');
         }
 
-        const NEEDY_PHRASES = ["Uploading Mental State...", "Doping Internet...", "Increasing Stress...", "Seeking Approval...", "Deleting Bad Comments...", " overdose.exe running...", "✝ A M E N ✝"];
+        const MIX_PHRASES = ["正在研磨情节碎片...", "提取字里行间的伏笔...", "注入主角的眼泪...", "搅拌悬疑的迷雾...", "沉淀时光的余韵...", "正在冰镇复杂的真相...", "调和甜蜜与苦涩的结局..."];
 
         function playMixingAnimation(book, drink) {
             const overlay = document.getElementById('mixing-overlay');
@@ -444,7 +431,7 @@
                 progress += 5;
                 mixBar.style.width = progress + '%';
                 if(progress % 20 === 0) {
-                    mixText.innerText = NEEDY_PHRASES[Math.floor(Math.random() * NEEDY_PHRASES.length)];
+                    mixText.innerText = MIX_PHRASES[Math.floor(Math.random() * MIX_PHRASES.length)];
                 }
                 if(progress >= 100) {
                     clearInterval(interval);
@@ -486,6 +473,7 @@
 
         function showDrinkCard(book, forcedDrink = null) {
             currentBookForDrink = book;
+            document.getElementById('btn-save').classList.remove('saved'); 
             const drink = forcedDrink || getDrinkForBook(book.title, book.isMystery);
             let displayIntro = drink.intro;
             let displayIngredients = drink.materials;
@@ -503,7 +491,7 @@
             document.getElementById('card-method').innerText = displayMethod;
             document.getElementById('card-glass').innerText = drink.glass;
             let tags = `<span class="tag-pill">${drink.profile}</span><span class="tag-pill">${drink.strength}</span>`;
-            if(book.isMystery) tags += `<span class="tag-pill" style="background:var(--needy-dark-pink);color:#fff;">✝ Mystery ✝</span>`;
+            if(book.isMystery) tags += `<span class="tag-pill" style="color:#ff00de">Mystery</span>`;
             document.getElementById('card-tags').innerHTML = tags;
             updateFavIconState();
             document.getElementById('drink-overlay').classList.add('show');
@@ -546,11 +534,11 @@
             const actions = document.querySelector('.card-actions');
             closeBtn.style.display = 'none';
             actions.style.display = 'none';
-            html2canvas(card, { backgroundColor: "#c0c0c0", scale: 2 }).then(canvas => {
+            html2canvas(card, { backgroundColor: "#0a0a0a", scale: 2 }).then(canvas => {
                 closeBtn.style.display = 'block';
                 actions.style.display = 'flex';
                 const link = document.createElement('a');
-                link.download = `AngelDose-${currentBookForDrink.title}.png`;
+                link.download = `VA11-${currentBookForDrink.title}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             });
@@ -592,7 +580,7 @@
             const container = document.getElementById('fav-container');
             container.innerHTML = '';
             if(favoriteDrinks.length === 0) {
-                container.innerHTML = '<div class="empty-tip" style="color:var(--needy-dark-pink)">No files found...</div>';
+                container.innerHTML = '<div class="empty-tip">酒窖空空如也...<br>去点一杯并收藏吧。</div>';
                 return;
             }
             let allBooksMap = {};
@@ -604,7 +592,7 @@
                     const div = document.createElement('div');
                     div.className = 'fav-item';
                     div.onclick = () => showDrinkCard(book);
-                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:var(--fusion-text);">${drink.base}</div>`;
+                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:#666;">${drink.base}</div>`;
                     container.appendChild(div);
                 }
             });
@@ -613,9 +601,20 @@
         function toggleSidebar() {
             const wrapper = document.getElementById('control-panel-wrapper');
             const btn = document.getElementById('toggle-sidebar-btn');
+            
             wrapper.classList.toggle('collapsed');
-            btn.innerHTML = wrapper.classList.contains('collapsed') ? '◀' : '▶';
-            setTimeout(() => { myChart.resize(); }, 350); 
+            
+            if(wrapper.classList.contains('collapsed')) {
+                btn.classList.remove('btn-expanded');
+                // 桌面版显示文字箭头
+                if(window.innerWidth > 768) btn.innerHTML = '◀';
+            } else {
+                btn.classList.add('btn-expanded');
+                if(window.innerWidth > 768) btn.innerHTML = '▶';
+            }
+            
+            // 🌟 修复：延迟调整地图大小，解决动画导致的变形
+            setTimeout(() => { myChart.resize(); }, 400); 
         }
 
         function toggleMysteryMode() {
@@ -692,139 +691,7 @@
             return item;
         }
 
-        function addBook() {
-            const country = document.getElementById('country-select').value;
-            const bookName = document.getElementById('book-name').value.trim();
-            if (!country) { alert("请先选择一个国家"); return; }
-            if (!bookName) { alert("请输入书名"); return; }
-            const btn = document.getElementById('add-btn');
-            btn.disabled = true; btn.innerText = "🔍 搜寻中...";
-            fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(bookName)}&langRestrict=zh&maxResults=1`)
-                .then(response => response.json()).then(data => {
-                    let newBook = { title: bookName, author: "未知作者", cover: "", isMystery: false }; 
-                    if (data.items && data.items.length > 0) {
-                        const info = data.items[0].volumeInfo;
-                        const apiTitle = info.title || "";
-                        if (apiTitle.includes(bookName)) {
-                            newBook.title = info.title || bookName;
-                            newBook.author = (info.authors && info.authors.length > 0) ? info.authors[0] : "未知作者";
-                            newBook.cover = (info.imageLinks && info.imageLinks.smallThumbnail) ? info.imageLinks.smallThumbnail : "";
-                            const categories = info.categories || [];
-                            const description = info.description || "";
-                            const title = info.title || "";
-                            const mysteryKeywords = ["Mystery", "Detective", "Crime", "Thriller", "Suspense", "Noir", "推理", "悬疑", "侦探", "凶杀", "解谜", "探案", "惊悚", "犯罪"];
-                            newBook.isMystery = mysteryKeywords.some(keyword => {
-                                return categories.some(c => c.includes(keyword)) || title.includes(keyword) || description.includes(keyword);
-                            });
-                        }
-                    }
-                    if (!myBookData[country]) myBookData[country] = [];
-                    myBookData[country].push(newBook);
-                    document.getElementById('book-name').value = '';
-                    btn.disabled = false; btn.innerText = "✨ 智能记录";
-                    saveCloudData(); 
-                    filterList(); 
-                })
-                .catch(err => {
-                    if (!myBookData[country]) myBookData[country] = [];
-                    myBookData[country].push({ title: bookName, author: "", cover: "", isMystery: false });
-                    document.getElementById('book-name').value = '';
-                    btn.disabled = false; btn.innerText = "✨ 智能记录";
-                    saveCloudData();
-                    filterList();
-                });
-        }
-
-        function editBook(country, index) {
-            const bookObj = getBookObject(myBookData[country][index]);
-            const newName = prompt("📝 修改书名:", bookObj.title);
-            if (newName === null) return;
-            const newIsMystery = confirm(`这本书是【悬疑/推理】类吗？\n\n点击“确定”标记为悬疑。\n点击“取消”标记为普通。`);
-            const newCountry = prompt("🌍 修改国家 (如果要移动请修改):", country);
-            if (newCountry === null) return;
-            bookObj.title = newName;
-            bookObj.isMystery = newIsMystery;
-            if (newCountry !== country) {
-                myBookData[country].splice(index, 1);
-                if (myBookData[country].length === 0) delete myBookData[country];
-                if (!myBookData[newCountry]) myBookData[newCountry] = [];
-                myBookData[newCountry].push(bookObj);
-            } else {
-                myBookData[country][index] = bookObj;
-            }
-            saveCloudData();
-            filterList();
-        }
-
-        function deleteBook(country, index) {
-            const bookObj = getBookObject(myBookData[country][index]);
-            if (confirm(`删除《${bookObj.title}》？`)) {
-                myBookData[country].splice(index, 1);
-                if (myBookData[country].length === 0) delete myBookData[country];
-                saveCloudData();
-                filterList();
-            }
-        }
-
-        function updateCountryDropdown() {
-            const select = document.getElementById('country-select');
-            const currentSelected = select.value; 
-            let sortedList = allCountryList.map(name => {
-                return { name: name, count: (myBookData[name] && myBookData[name].length > 0) ? myBookData[name].length : 0 };
-            });
-            sortedList.sort((a, b) => {
-                if (b.count !== a.count) return b.count - a.count;
-                return a.name.localeCompare(b.name, 'zh');
-            });
-            select.innerHTML = '<option value="">-- 显示全部 --</option>';
-            [...sortedList.slice(0,5), ...sortedList.slice(5).sort((a,b)=>a.name.localeCompare(b.name,'zh'))].forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.name;
-                option.textContent = item.name; 
-                select.appendChild(option);
-            });
-            if (currentSelected) select.value = currentSelected;
-        }
-
-        function renderMap(filteredData, highlightCountry = "") {
-            if (!geoJsonData) return;
-            const mapData = [];
-            let maxBookCount = 0;
-            const defaultAreaColor = isMysteryMode ? '#37474f' : '#f7fcf5';
-            const defaultBorderColor = isMysteryMode ? '#546e7a' : '#eceff1';
-            const hoverStyle = { shadowBlur: 15, shadowColor: 'rgba(0, 0, 0, 0.5)', shadowOffsetY: 8, shadowOffsetX: 4 };
-            const selectedStyle = { areaColor: isMysteryMode ? '#7e57c2' : '#ffeb3b', borderColor: defaultBorderColor, borderWidth: 0.5, ...hoverStyle };
-            for (let country in filteredData) {
-                const count = filteredData[country].length;
-                if (count > maxBookCount) maxBookCount = count;
-                let itemStyle;
-                if (highlightCountry && country === highlightCountry) { itemStyle = selectedStyle; } else { itemStyle = { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }; }
-                mapData.push({ name: country, value: count, books: filteredData[country], itemStyle: itemStyle });
-            }
-            if (highlightCountry && !filteredData[highlightCountry]) { mapData.push({ name: highlightCountry, value: 0, books: [], itemStyle: selectedStyle }); }
-            if (maxBookCount < 5) maxBookCount = 5;
-            const forestColors = [{min: 50, label: '50+', color: '#005a32'}, {min: 20, max: 49, label: '20-49', color: '#238b45'}, {min: 10, max: 19, label: '10-19', color: '#41ab5d'}, {min: 5, max: 9, label: '5-9', color: '#74c476'}, {min: 1, max: 4, label: '1-4', color: '#bae4b3'}];
-            const mysteryColors = [{min: 50, label: '50+', color: '#311b92'}, {min: 20, max: 49, label: '20-49', color: '#4527a0'}, {min: 10, max: 19, label: '10-19', color: '#673ab7'}, {min: 5, max: 9, label: '5-9', color: '#9575cd'}, {min: 1, max: 4, label: '1-4', color: '#d1c4e9'}];
-            const option = {
-                backgroundColor: 'transparent',
-                visualMap: { type: 'piecewise', left: 'left', top: 'bottom', text: [isMysteryMode ? '悬疑含量' : '阅读量', ''], pieces: isMysteryMode ? mysteryColors : forestColors, textStyle: { color: isMysteryMode ? '#b39ddb' : '#5d4037' }, },
-                tooltip: {
-                    trigger: 'item', backgroundColor: isMysteryMode ? 'rgba(50, 50, 50, 0.9)' : '#ffffff', borderColor: isMysteryMode ? '#9575cd' : '#74c476', borderWidth: 1, textStyle: { color: isMysteryMode ? '#fff' : '#37474f' },
-                    formatter: (p) => {
-                        if (!p.value) return p.name;
-                        if (p.data && p.data.books && p.data.books.length > 0) {
-                            let bookListStr = p.data.books.slice(0, 8).map(b=>'• '+b.title).join('<br/>');
-                            if(p.data.books.length > 8) bookListStr += '<br/>...等 ' + p.data.books.length + ' 本';
-                            return `<div style="padding:5px;"><strong>${p.name}</strong><br/><span style="font-size:12px;opacity:0.8">已读：${p.value}</span><br/>${bookListStr}</div>`;
-                        }
-                        return p.name;
-                    }
-                },
-                series: [{ type: 'map', map: 'world', nameMap: nameMap, roam: true, zoom: 1.2, itemStyle: { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }, emphasis: { label: { show: true, color: isMysteryMode ? '#fff' : '#01579b', fontWeight: 'bold' }, itemStyle: hoverStyle }, data: mapData }]
-            };
-            myChart.setOption(option);
-        }
-
+        // 加载地图数据并初始化
         fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/world.json')
             .then(res => res.json()).then(json => { 
                 geoJsonData = json; 
@@ -837,7 +704,12 @@
                 const uniqueCountries = new Set(Object.values(nameMap));
                 allCountryList = Array.from(uniqueCountries).sort((a, b) => a.localeCompare(b, 'zh'));
                 loadCloudData(); 
+            })
+            .catch(err => {
+                // ⚠️ 如果地图JSON加载失败，弹出警告
+                alert("Map Loading Error: " + err + ". Check your internet connection.");
             });
+        
         window.addEventListener('resize', () => myChart.resize());
     </script>
 </body>
