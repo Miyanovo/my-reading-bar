@@ -26,7 +26,7 @@
             --sdv-red: #e63e3e;        /* 按钮红 */
             --sdv-text-brown: #3f1807; /* 主要文字褐 */
             
-            /* 像素边框模拟 */
+            /* 像素边框模拟 (Box Shadow大法) */
             --pixel-box-shadow: 
                 inset 3px 3px 0px rgba(255,255,255,0.2),
                 inset -3px -3px 0px rgba(0,0,0,0.3),
@@ -41,29 +41,35 @@
         #main { width: 100%; height: 100%; }
 
         /* =========================================
-           🍺 星之果实餐吧 UI 层
+           🍺 星之果实餐吧 UI 层 (Stardew Valley Style)
            ========================================= */
         #bar-interface {
             width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 10;
+            
+            /* 这里的背景色作为底色，与半透明图片混合 */
             background-color: #2a1d2a; 
+            
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.1);
             transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
             color: var(--sdv-text-brown); padding-top: 20px; box-sizing: border-box;
             font-family: 'VT323', monospace; 
-            overflow: hidden; 
+            overflow: hidden; /* 防止伪元素溢出 */
         }
 
-        /* 🌲 背景图片层 (70%透明度) */
+        /* 🌲 新增：背景图片层 (70%透明度) */
         #bar-interface::before {
             content: "";
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
+            /* 确保图片路径正确 */
             background-image: url('8766400c5c1bdb4a4b48b00aedb331d.jpg'); 
             background-size: cover;
             background-position: center;
+            /* 0.3 不透明度 = 70% 透明度 */
             opacity: 0.3; 
             z-index: -1;
+            /* 可选：稍微模糊一点让文字更清晰 */
             filter: blur(2px) brightness(0.6); 
         }
 
@@ -76,10 +82,13 @@
             padding: 10px 20px; 
             background: var(--sdv-wood-light);
             color: var(--sdv-text-brown);
-            cursor: pointer; font-size: 20px; 
+            cursor: pointer; font-size: 20px; /* 调整大小 */
+            
+            /* ✨ 字体修改：中文使用宋体制造像素感 */
             font-family: 'Press Start 2P', 'SimSun', monospace; 
             font-weight: bold;
             letter-spacing: 2px;
+
             border: 2px solid #593111;
             box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
             transition: transform 0.1s;
@@ -97,7 +106,7 @@
 
         /* 内容容器 */
         .bar-content { 
-            width: 90%; max-width: 700px; flex: 1; 
+            width: 90%; max-width: 600px; flex: 1; 
             background: var(--sdv-blue-ui);
             border: 4px solid var(--sdv-border-gold);
             border-radius: 15px;
@@ -133,7 +142,7 @@
             background: var(--sdv-green);
             border: none;
             color: #fff;
-            font-family: 'Press Start 2P', 'SimSun', monospace;
+            font-family: 'Press Start 2P', 'SimSun', monospace; /* 按钮也应用像素字体 */
             font-size: 16px; cursor: pointer;
             box-shadow: var(--pixel-box-shadow);
             transition: all 0.1s;
@@ -158,7 +167,7 @@
             padding: 5px 10px; border: 2px solid #d4bba3; font-size: 16px;
             cursor: pointer; color: #777; transition: 0.1s; background: #fff;
             border-radius: 4px;
-            font-family: 'SimSun', monospace;
+            font-family: 'SimSun', monospace; /* 选项也是 */
         }
         .filter-opt:hover { border-color: var(--sdv-wood-light); color: var(--sdv-text-brown); }
         .filter-opt.selected { 
@@ -168,71 +177,20 @@
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
         }
 
-        /* =========================================
-           📦 分组与拖拽系统 (Inventory)
-           ========================================= */
-        .fav-groups-container {
-            width: 100%; display: flex; flex-direction: column; gap: 20px; padding: 10px; box-sizing: border-box;
-        }
-        .fav-group {
-            background: rgba(0,0,0,0.2);
-            border: 2px dashed #8c5828;
-            border-radius: 8px;
-            padding: 10px;
-            position: relative;
-            min-height: 100px;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        /* 拖拽经过时的高亮效果 */
-        .fav-group.drag-over {
-            background: rgba(72, 168, 38, 0.3); 
-            border-style: solid;
-            border-color: var(--sdv-green);
-        }
-        .group-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; padding: 0 5px;
-        }
-        .group-title {
-            font-family: 'Press Start 2P', 'SimSun';
-            color: #ffefcd; 
-            text-shadow: 1px 1px 0 #3f1807;
-            font-size: 14px; cursor: pointer;
-            border-bottom: 1px dashed transparent;
-            padding-bottom: 2px;
-        }
-        .group-title:hover { border-bottom-color: #ffefcd; }
-        .group-title::after { content: ' ✎'; font-size: 10px; color: #ccc; opacity: 0; }
-        .group-title:hover::after { opacity: 1; }
-        
-        .group-delete-btn { font-size: 12px; cursor: pointer; color: #e63e3e; font-family: 'SimSun', sans-serif; font-weight: bold;}
-        .group-delete-btn:hover { color: #ff6b6b; text-decoration: underline; }
-
-        .add-group-btn {
-            width: 100%; padding: 12px;
-            border: 2px dashed #e0a663;
-            color: #e0a663; cursor: pointer;
-            font-family: 'Press Start 2P', 'SimSun';
-            text-align: center; background: transparent;
-            transition: 0.2s; margin-top: 10px; border-radius: 8px;
-        }
-        .add-group-btn:hover { background: rgba(224, 166, 99, 0.1); color: #fff; border-color: #fff;}
-
-        /* 酒窖格子 (拖拽项) */
-        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; width: 100%; }
+        /* 收藏夹 */
+        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; width: 100%; padding: 10px; }
         .fav-item {
             background: var(--sdv-wood-dark); 
             border: 2px solid #3c1e0a; 
-            padding: 8px; border-radius: 8px;
-            cursor: grab; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+            padding: 10px; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .fav-item:active { cursor: grabbing; transform: scale(0.95); }
         .fav-item:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.5); border-color: var(--sdv-border-gold); }
-        .fav-icon { font-size: 24px; margin-bottom: 5px; }
-        .fav-name { color: #fff; font-size: 12px; text-shadow: 1px 1px 0 #000; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; font-family: 'VT323';}
+        .fav-icon { font-size: 30px; margin-bottom: 5px; }
+        .fav-name { color: #fff; font-size: 14px; text-shadow: 1px 1px 0 #000; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; font-family: 'VT323';}
 
-        /* 饮品卡弹窗 */
+        /* 饮品卡 */
         .drink-card-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);
@@ -265,44 +223,6 @@
         }
         .card-close:hover { transform: scale(1.2); }
         
-        /* 🏷️ 侧边标签 (Side Tab) */
-        .card-side-panel {
-            position: absolute; right: -50px; top: 30px;
-            width: 50px; display: flex; flex-direction: column; gap: 10px;
-        }
-        .side-tab {
-            background: var(--sdv-wood-light);
-            border: 3px solid var(--sdv-wood-dark);
-            border-left: none;
-            padding: 10px 5px;
-            font-size: 20px; cursor: pointer;
-            box-shadow: 3px 3px 0 rgba(0,0,0,0.3);
-            border-radius: 0 8px 8px 0;
-            color: #fff; text-shadow: 1px 1px 0 #000;
-            transition: transform 0.2s;
-            position: relative;
-        }
-        .side-tab:hover { transform: translateX(5px); background: var(--sdv-green); }
-
-        /* 分组选择器弹窗 */
-        .group-selector-wrapper {
-            position: absolute; right: -180px; top: 30px;
-            width: 160px; background: var(--sdv-cream);
-            border: 3px solid var(--sdv-text-brown);
-            padding: 10px; border-radius: 4px;
-            box-shadow: 5px 5px 0 rgba(0,0,0,0.5);
-            display: none; /* 默认隐藏 */
-            flex-direction: column; gap: 5px;
-            z-index: 55; font-family: 'SimSun';
-        }
-        .group-selector-wrapper.show { display: flex; animation: popIn 0.2s; }
-        .group-select-label { font-size: 12px; color: #3e2723; font-weight: bold; margin-bottom: 5px; text-align: left;}
-        .pixel-select {
-            width: 100%; padding: 5px; font-family: 'SimSun', monospace;
-            border: 2px solid #3e2723; background: #fff; outline: none;
-        }
-        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        
         .card-glass-icon { 
             font-size: 60px; margin: 15px 0 10px 0; display: inline-block; 
             filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.2));
@@ -311,7 +231,7 @@
         @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
         .card-title { 
-            font-family: 'Press Start 2P', 'SimSun', monospace; 
+            font-family: 'Press Start 2P', 'SimSun', monospace; /* 标题应用像素字体 */
             font-size: 18px; margin-bottom: 5px; 
             color: var(--sdv-text-brown); line-height: 1.4;
         }
@@ -510,8 +430,8 @@
                 </div>
 
                 <div id="view-fav" class="bar-view">
-                    <div class="fav-groups-container" id="fav-groups-display"></div>
-                    <div class="add-group-btn" onclick="addNewGroup()">+ 新建货架 +</div>
+                    <div class="fav-grid" id="fav-container">
+                        </div>
                 </div>
             </div>
             
@@ -544,16 +464,6 @@
                     </div>
                     
                     <div style="font-size:14px; color:#8d6e63; margin-top:15px; border-top: 2px dashed #d4bba3; padding-top:5px; font-family:'Press Start 2P'; font-size:10px;">GLASS TYPE: <span id="card-glass">...</span></div>
-
-                    <div class="card-side-panel" id="card-side-panel">
-                        <div class="side-tab" onclick="toggleGroupSelector()" title="更改分组">🏷️</div>
-                    </div>
-                    
-                    <div class="group-selector-wrapper" id="group-selector-popup">
-                        <div class="group-select-label">移动至分组:</div>
-                        <select class="pixel-select" id="card-group-select" onchange="changeCardGroup(this.value)">
-                            </select>
-                    </div>
                 </div>
             </div>
         </div>
@@ -617,13 +527,11 @@
         var isBarMode = false;
         var currentBarTab = 'random';
         var currentBookForDrink = null;
-        
-        // 🆕 分组数据结构: { "默认收藏": ["BookTitle1", "BookTitle2"], ... }
-        var favoriteGroups = { "默认收藏": [] };
-        // 缓存平铺的列表以便快速查询是否收藏 (兼容旧逻辑)
         var favoriteDrinks = []; 
 
         var filterState = { taste: 'any', strength: 'any', base: 'any' };
+
+        // 完整 NameMap
         var nameMap = { 'Afghanistan': '阿富汗', 'Albania': '阿尔巴尼亚', 'Algeria': '阿尔及利亚', 'Andorra': '安道尔', 'Angola': '安哥拉', 'Antarctica': '南极洲', 'Antigua and Barb.': '安提瓜和巴布达', 'Argentina': '阿根廷', 'Armenia': '亚美尼亚', 'Australia': '澳大利亚', 'Austria': '奥地利', 'Azerbaijan': '阿塞拜疆', 'Bahamas': '巴哈马', 'Bahrain': '巴林', 'Bangladesh': '孟加拉国', 'Barbados': '巴巴多斯', 'Belarus': '白俄罗斯', 'Belgium': '比利时', 'Belize': '伯利兹', 'Benin': '贝宁', 'Bermuda': '百慕大', 'Bhutan': '不丹', 'Bolivia': '玻利维亚', 'Bosnia and Herz.': '波黑', 'Botswana': '博茨瓦纳', 'Brazil': '巴西', 'Brunei': '文莱', 'Bulgaria': '保加利亚', 'Burkina Faso': '布基纳法索', 'Burundi': '布隆迪', 'Cambodia': '柬埔寨', 'Cameroon': '喀麦隆', 'Canada': '加拿大', 'Cape Verde': '佛得角', 'Central African Rep.': '中非共和国', 'Chad': '乍得', 'Chile': '智利', 'China': '中国', 'Colombia': '哥伦比亚', 'Comoros': '科摩罗', 'Congo': '刚果共和国', 'Costa Rica': '哥斯达黎加', 'Croatia': '克罗地亚', 'Cuba': '古巴', 'Cyprus': '塞浦路斯', 'Czech Rep.': '捷克共和国', 'Côte d\'Ivoire': '科特迪瓦', 'Dem. Rep. Congo': '刚果民主共和国', 'Dem. Rep. Korea': '朝鲜', 'Denmark': '丹麦', 'Djibouti': '吉布提', 'Dominica': '多米尼克', 'Dominican Rep.': '多米尼加', 'Ecuador': '厄瓜多尔', 'Egypt': '埃及', 'El Salvador': '萨尔瓦多', 'Eq. Guinea': '赤道几内亚', 'Eritrea': '厄立特里亚', 'Estonia': '爱沙尼亚', 'Ethiopia': '埃塞俄比亚', 'Falkland Is.': '福克兰群岛', 'Fiji': '斐济', 'Finland': '芬兰', 'France': '法国', 'Fr. S. Antarctic Lands': '法属南半球和南极领地', 'Gabon': '加蓬', 'Gambia': '冈比亚', 'Georgia': '格鲁吉亚', 'Germany': '德国', 'Ghana': '加纳', 'Greece': '希腊', 'Greenland': '格陵兰', 'Grenada': '格林纳达', 'Guatemala': '危地马拉', 'Guinea': '几内亚', 'Guinea-Bissau': '几内亚比绍', 'Guyana': '圭亚那', 'Haiti': '海地', 'Honduras': '洪都拉斯', 'Hungary': '匈牙利', 'Iceland': '冰岛', 'India': '印度', 'Indonesia': '印度尼西亚', 'Iran': '伊朗', 'Iraq': '伊拉克', 'Ireland': '爱尔兰', 'Israel': '以色列', 'Italy': '意大利', 'Ivory Coast': '科特迪瓦', 'Jamaica': '牙买加', 'Japan': '日本', 'Jordan': '约旦', 'Kazakhstan': '哈萨克斯坦', 'Kenya': '肯尼亚', 'Korea': '韩国', 'Kosovo': '科索沃', 'Kuwait': '科威特', 'Kyrgyzstan': '吉尔吉斯斯坦', 'Lao PDR': '老挝', 'Latvia': '拉脱维亚', 'Lebanon': '黎巴嫩', 'Lesotho': '莱索托', 'Liberia': '利比里亚', 'Libya': '利比亚', 'Liechtenstein': '列支敦士登', 'Lithuania': '立陶宛', 'Luxembourg': '卢森堡', 'Madagascar': '马达加斯加', 'Malawi': '马拉维', 'Malaysia': '马来西亚', 'Mali': '马里', 'Malta': '马耳他', 'Mauritania': '毛里塔尼亚', 'Mauritius': '毛里求斯', 'Mexico': '墨西哥', 'Moldova': '摩尔多瓦', 'Monaco': '摩纳哥', 'Mongolia': '蒙古', 'Montenegro': '黑山', 'Morocco': '摩洛哥', 'Mozambique': '莫桑比克', 'Myanmar': '缅甸', 'Namibia': '纳米比亚', 'Nepal': '尼泊尔', 'Netherlands': '荷兰', 'New Zealand': '新西兰', 'Nicaragua': '尼加拉瓜', 'Niger': '尼日尔', 'Nigeria': '尼日利亚', 'North Korea': '朝鲜', 'North Macedonia': '北马其顿', 'Norway': '挪威', 'Oman': '阿曼', 'Pakistan': '巴基斯坦', 'Palestine': '巴勒斯坦', 'Panama': '巴拿马', 'Papua New Guinea': '巴布亚新几内亚', 'Paraguay': '巴拉圭', 'Peru': '秘鲁', 'Philippines': '菲律宾', 'Poland': '波兰', 'Portugal': '葡萄牙', 'Puerto Rico': '波多黎各', 'Qatar': '卡塔尔', 'Romania': '罗马尼亚', 'Russia': '俄罗斯', 'Rwanda': '卢旺达', 'S. Sudan': '南苏丹', 'Samoa': '萨摩亚', 'Saudi Arabia': '沙特阿拉伯', 'Senegal': '塞内加尔', 'Serbia': '塞尔维亚', 'Seychelles': '塞舌尔', 'Sierra Leone': '塞拉利昂', 'Singapore': '新加坡', 'Slovakia': '斯洛伐克', 'Slovenia': '斯洛文尼亚', 'Solomon Is.': '所罗门群岛', 'Somalia': '索马里', 'South Africa': '南非', 'South Korea': '韩国', 'South Sudan': '南苏丹', 'Spain': '西班牙', 'Sri Lanka': '斯里兰卡', 'Sudan': '苏丹', 'Suriname': '苏里南', 'Swaziland': '斯威士兰', 'Sweden': '瑞典', 'Switzerland': '瑞士', 'Syria': '叙利亚', 'Taiwan': '中国', 'Tajikistan': '塔吉克斯坦', 'Tanzania': '坦桑尼亚', 'Thailand': '泰国', 'Timor-Leste': '东帝汶', 'Togo': '多哥', 'Tonga': '汤加', 'Trinidad and Tobago': '特立尼达和多巴哥', 'Tunisia': '突尼斯', 'Turkey': '土耳其', 'Turkmenistan': '土库曼斯坦', 'Uganda': '乌干达', 'Ukraine': '乌克兰', 'United Arab Emirates': '阿联酋', 'United Kingdom': '英国', 'United States': '美国', 'Uruguay': '乌拉圭', 'Uzbekistan': '乌兹别克斯坦', 'Vanuatu': '瓦努阿图', 'Venezuela': '委内瑞拉', 'Vietnam': '越南', 'West Bank': '西岸', 'W. Sahara': '西撒哈拉', 'Yemen': '也门', 'Zambia': '赞比亚', 'Zimbabwe': '津巴布韦' };
 
         // --- 初始化与数据加载 ---
@@ -632,21 +540,12 @@
             .then(res => res.json())
             .then(data => {
                 let record = data.record;
-                myBookData = record.books || record;
-                if (!myBookData) myBookData = {};
-
-                // 兼容性处理：如果读取到的是旧的 flat array 收藏，迁移到 favoriteGroups
-                if (record.favoriteGroups) {
-                    favoriteGroups = record.favoriteGroups;
-                } else if (record.favorites && Array.isArray(record.favorites)) {
-                    // 旧数据迁移
-                    favoriteGroups = { "默认收藏": record.favorites };
-                } else {
-                    favoriteGroups = { "默认收藏": [] };
+                myBookData = (record.books || (!record.favorites && !record.books) ? record : {});
+                if(!record.favorites && !record.books && Object.keys(record).length > 0) {
+                      myBookData = record; 
                 }
-                
-                // 重新生成平铺列表，便于快速查询
-                rebuildFlatFavorites();
+                if(record.favorites) favoriteDrinks = record.favorites;
+                if(record.books) myBookData = record.books;
 
                 updateUI();
                 updateCountryDropdown(); 
@@ -656,27 +555,15 @@
             .catch(err => { console.error(err); document.getElementById('loading-text').innerText = "加载失败"; });
         }
 
-        function rebuildFlatFavorites() {
-            favoriteDrinks = [];
-            for (let groupName in favoriteGroups) {
-                favoriteDrinks = favoriteDrinks.concat(favoriteGroups[groupName]);
-            }
-        }
-
         function saveCloudData() {
-            rebuildFlatFavorites(); // 确保保存前数据一致
-            const payload = { 
-                books: myBookData, 
-                favorites: favoriteDrinks, // 保持旧字段以防万一
-                favoriteGroups: favoriteGroups // 新增字段
-            };
+            const payload = { books: myBookData, favorites: favoriteDrinks };
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
                 method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
                 body: JSON.stringify(payload)
             }).then(res => res.json()).then(data => { console.log('Saved'); });
         }
 
-        // --- 核心逻辑 ---
+        // --- 核心逻辑：智能配酒 ---
         function getDrinkForBook(bookTitle, isMystery) {
             let seed = 0;
             for (let i = 0; i < bookTitle.length; i++) seed += bookTitle.charCodeAt(i);
@@ -688,10 +575,12 @@
             } else if(lowerTitle.includes('爱') || lowerTitle.includes('梦') || lowerTitle.includes('婚')) {
                 candidates = COCKTAIL_DB.filter(d => d.profile === 'sweet');
             }
+
             if(candidates.length === 0) candidates = COCKTAIL_DB;
             return candidates[seed % candidates.length]; 
         }
 
+        // --- 吧台交互 ---
         function switchBarTab(tab) {
             currentBarTab = tab;
             document.querySelectorAll('.bar-nav-item').forEach(el => el.classList.remove('active'));
@@ -708,212 +597,29 @@
             el.classList.add('selected');
         }
 
-        // --- 拖拽与分组逻辑 ---
-        function addNewGroup() {
-            const name = prompt("请输入新货架名称:", "新分类");
-            if (name) {
-                if (favoriteGroups[name]) return alert("该分类已存在！");
-                favoriteGroups[name] = [];
-                saveCloudData();
-                renderFavorites();
-            }
-        }
-
-        function renameGroup(oldName) {
-            const newName = prompt("重命名货架:", oldName);
-            if (newName && newName !== oldName) {
-                if (favoriteGroups[newName]) return alert("该分类已存在！");
-                favoriteGroups[newName] = favoriteGroups[oldName];
-                delete favoriteGroups[oldName];
-                saveCloudData();
-                renderFavorites();
-            }
-        }
-
-        function deleteGroup(groupName) {
-            if (confirm(`确定拆除货架“${groupName}”吗？\n里面的饮品将移动到“默认收藏”。`)) {
-                const items = favoriteGroups[groupName];
-                if (!favoriteGroups["默认收藏"]) favoriteGroups["默认收藏"] = [];
-                favoriteGroups["默认收藏"] = favoriteGroups["默认收藏"].concat(items);
-                delete favoriteGroups[groupName];
-                saveCloudData();
-                renderFavorites();
-            }
-        }
-
-        // 拖拽事件处理
-        function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
-        function leaveDrop(ev) { ev.currentTarget.classList.remove('drag-over'); }
-        function drag(ev) {
-            ev.dataTransfer.setData("text", ev.target.dataset.bookTitle);
-            ev.dataTransfer.setData("sourceGroup", ev.target.dataset.groupName);
-        }
-        function drop(ev, targetGroupName) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            const title = ev.dataTransfer.getData("text");
-            const sourceGroup = ev.dataTransfer.getData("sourceGroup");
-            
-            if (sourceGroup === targetGroupName) return;
-
-            // 移动数据
-            const oldList = favoriteGroups[sourceGroup];
-            const idx = oldList.indexOf(title);
-            if (idx > -1) {
-                oldList.splice(idx, 1);
-                favoriteGroups[targetGroupName].push(title);
-                saveCloudData();
-                renderFavorites();
-            }
-        }
-
-        // --- 渲染收藏夹 (分组视图) ---
-        function renderFavorites() {
-            const container = document.getElementById('fav-groups-display');
-            container.innerHTML = '';
-            
-            let allBooksMap = {};
-            for(let c in myBookData) myBookData[c].forEach(b => allBooksMap[getBookObject(b).title] = getBookObject(b));
-
-            if (Object.keys(favoriteGroups).length === 0) favoriteGroups = { "默认收藏": [] };
-
-            for (let groupName in favoriteGroups) {
-                const items = favoriteGroups[groupName];
-                
-                // 组容器
-                const groupDiv = document.createElement('div');
-                groupDiv.className = 'fav-group';
-                groupDiv.ondrop = (ev) => drop(ev, groupName);
-                groupDiv.ondragover = allowDrop;
-                groupDiv.ondragleave = leaveDrop;
-
-                // 组标题
-                let deleteHtml = groupName !== '默认收藏' ? `<span class="group-delete-btn" onclick="deleteGroup('${groupName}')">× 拆除</span>` : '';
-                groupDiv.innerHTML = `<div class="group-header">
-                    <span class="group-title" onclick="renameGroup('${groupName}')">${groupName} (${items.length})</span>
-                    ${deleteHtml}
-                </div>`;
-
-                // 物品网格
-                const gridDiv = document.createElement('div');
-                gridDiv.className = 'fav-grid';
-                
-                items.forEach(title => {
-                    const book = allBooksMap[title];
-                    if(book) {
-                        const drink = getDrinkForBook(title, book.isMystery);
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'fav-item';
-                        itemDiv.draggable = true;
-                        itemDiv.dataset.bookTitle = title;
-                        itemDiv.dataset.groupName = groupName;
-                        itemDiv.ondragstart = drag;
-                        itemDiv.onclick = () => showDrinkCard(book);
-                        itemDiv.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div>`;
-                        gridDiv.appendChild(itemDiv);
-                    }
-                });
-                
-                groupDiv.appendChild(gridDiv);
-                container.appendChild(groupDiv);
-            }
-        }
-
-        // --- 侧边栏分组选择器逻辑 ---
-        function toggleGroupSelector() {
-            const popup = document.getElementById('group-selector-popup');
-            const select = document.getElementById('card-group-select');
-            
-            // 填充选项
-            select.innerHTML = '';
-            let currentGroup = '';
-            
-            // 查找当前所属组
-            for (let g in favoriteGroups) {
-                if (favoriteGroups[g].includes(currentBookForDrink.title)) {
-                    currentGroup = g;
-                    break;
-                }
-            }
-            if (!currentGroup) {
-                 // 未收藏
-                 select.innerHTML = '<option value="">(未收藏)</option>';
-            }
-
-            for (let g in favoriteGroups) {
-                const opt = document.createElement('option');
-                opt.value = g;
-                opt.innerText = g;
-                if (g === currentGroup) opt.selected = true;
-                select.appendChild(opt);
-            }
-
-            popup.classList.toggle('show');
-        }
-
-        function changeCardGroup(newGroup) {
-            const title = currentBookForDrink.title;
-            // 先从旧组移除
-            for (let g in favoriteGroups) {
-                const idx = favoriteGroups[g].indexOf(title);
-                if (idx > -1) {
-                    favoriteGroups[g].splice(idx, 1);
-                }
-            }
-            // 加入新组
-            if (favoriteGroups[newGroup]) {
-                favoriteGroups[newGroup].push(title);
-            }
-            
-            saveCloudData();
-            updateFavIconState(); // 如果之前没收藏，现在收藏了，星星要亮
-            if(currentBarTab === 'fav') renderFavorites();
-            document.getElementById('group-selector-popup').classList.remove('show');
-        }
-
-        // --- 通用 ---
-        function serveRandomDrink() {
-            let allBooks = [];
-            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(b));
-            if(allBooks.length === 0) return alert("书架是空的，先去记录几本书吧！");
-            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
-            const bookObj = getBookObject(randomBook);
-            const drink = getDrinkForBook(bookObj.title, bookObj.isMystery);
-            playMixingAnimation(bookObj, drink);
-        }
-
-        function serveFilteredDrink() {
-            let allBooks = [];
-            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(getBookObject(b)));
-            let validDrinks = COCKTAIL_DB.filter(d => {
-                let matchTaste = filterState.taste === 'any' || d.profile === filterState.taste;
-                let matchStrength = filterState.strength === 'any' || d.strength === filterState.strength;
-                let matchBase = filterState.base === 'any' || d.base.toLowerCase() === filterState.base.toLowerCase();
-                return matchTaste && matchStrength && matchBase;
-            });
-            if(validDrinks.length === 0) return alert("酒单中没有符合这种刁钻口味的配方...");
-            if(allBooks.length === 0) return alert("没有书可做酒了。");
-            const targetDrinkBase = validDrinks[Math.floor(Math.random() * validDrinks.length)];
-            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
-            playMixingAnimation(randomBook, targetDrinkBase);
-        }
-
-        // 动画
+        // === 调酒动画逻辑 ===
         const MIX_PHRASES = ["正在放入发酵桶...", "添加古代水果...", "等待季节轮转...", "听取祝尼魔的低语...", "从地窖取出陈酿...", "正在擦拭玻璃杯...", "加入一点星之粉尘..."];
+
         function playMixingAnimation(book, drink) {
             const overlay = document.getElementById('mixing-overlay');
             const mixBar = document.getElementById('mix-bar');
             const mixText = document.getElementById('mix-text');
             const revealIcon = document.getElementById('big-reveal-icon');
+            
             overlay.classList.add('active');
             mixBar.style.width = '0%';
             revealIcon.classList.remove('popping');
             revealIcon.innerHTML = getGlassIcon(drink.glass); 
+            
             let progress = 0;
             const interval = setInterval(() => {
                 progress += 5;
                 mixBar.style.width = progress + '%';
-                if(progress % 20 === 0) mixText.innerText = MIX_PHRASES[Math.floor(Math.random() * MIX_PHRASES.length)];
+                
+                if(progress % 20 === 0) {
+                    mixText.innerText = MIX_PHRASES[Math.floor(Math.random() * MIX_PHRASES.length)];
+                }
+
                 if(progress >= 100) {
                     clearInterval(interval);
                     mixText.innerText = "酿 造 完 成 !";
@@ -924,6 +630,124 @@
                     }, 600); 
                 }
             }, 80); 
+        }
+
+        function serveRandomDrink() {
+            let allBooks = [];
+            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(b));
+            if(allBooks.length === 0) return alert("书架是空的，先去记录几本书吧！");
+            
+            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+            const bookObj = getBookObject(randomBook);
+            const drink = getDrinkForBook(bookObj.title, bookObj.isMystery);
+            playMixingAnimation(bookObj, drink);
+        }
+
+        function serveFilteredDrink() {
+            let allBooks = [];
+            for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(getBookObject(b)));
+            
+            let validDrinks = COCKTAIL_DB.filter(d => {
+                let matchTaste = filterState.taste === 'any' || d.profile === filterState.taste;
+                let matchStrength = filterState.strength === 'any' || d.strength === filterState.strength;
+                let matchBase = filterState.base === 'any' || d.base.toLowerCase() === filterState.base.toLowerCase();
+                return matchTaste && matchStrength && matchBase;
+            });
+
+            if(validDrinks.length === 0) return alert("酒单中没有符合这种刁钻口味的配方...");
+            if(allBooks.length === 0) return alert("没有书可做酒了。");
+            
+            const targetDrinkBase = validDrinks[Math.floor(Math.random() * validDrinks.length)];
+            const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
+            playMixingAnimation(randomBook, targetDrinkBase);
+        }
+
+        function showDrinkCard(book, forcedDrink = null) {
+            currentBookForDrink = book;
+            document.getElementById('btn-save').classList.remove('saved'); 
+            
+            const drink = forcedDrink || getDrinkForBook(book.title, book.isMystery);
+            let displayIntro = drink.intro;
+            let displayIngredients = drink.materials;
+            let displayMethod = drink.method;
+
+            if (book.customDrink) {
+                displayIntro = book.customDrink.intro || drink.intro;
+                displayIngredients = book.customDrink.ingredients || drink.materials;
+                displayMethod = book.customDrink.method || drink.method;
+            }
+
+            document.getElementById('card-title').innerText = book.title;
+            document.getElementById('card-base').innerText = drink.base.toUpperCase() + ' BASE';
+            document.getElementById('card-icon').innerText = getGlassIcon(drink.glass);
+            document.getElementById('card-intro').innerText = displayIntro;
+            document.getElementById('card-ingredients').innerText = displayIngredients;
+            document.getElementById('card-method').innerText = displayMethod;
+            document.getElementById('card-glass').innerText = drink.glass;
+            
+            let tags = `<span class="tag-pill">${drink.profile}</span><span class="tag-pill">${drink.strength}</span>`;
+            if(book.isMystery) tags += `<span class="tag-pill" style="background:#4a2810">Mystery</span>`;
+            document.getElementById('card-tags').innerHTML = tags;
+
+            updateFavIconState();
+            document.getElementById('drink-overlay').classList.add('show');
+        }
+
+        function saveCurrentCard() {
+            if (!currentBookForDrink) return;
+            const newIntro = document.getElementById('card-intro').innerText;
+            const newIngredients = document.getElementById('card-ingredients').innerText;
+            const newMethod = document.getElementById('card-method').innerText;
+
+            let found = false;
+            for (let country in myBookData) {
+                const list = myBookData[country];
+                for (let i = 0; i < list.length; i++) {
+                    if (list[i].title === currentBookForDrink.title) {
+                        if (!list[i].customDrink) list[i].customDrink = {};
+                        list[i].customDrink.intro = newIntro;
+                        list[i].customDrink.ingredients = newIngredients;
+                        list[i].customDrink.method = newMethod;
+                        currentBookForDrink.customDrink = list[i].customDrink;
+                        found = true;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+
+            if (found) {
+                saveCloudData();
+                const btn = document.getElementById('btn-save');
+                btn.classList.add('saved'); 
+                setTimeout(() => { btn.classList.remove('saved'); }, 2000);
+            } else {
+                alert("保存失败：未找到原始书籍记录。");
+            }
+        }
+
+        // 🆕 下载图片
+        function downloadCard() {
+            const card = document.getElementById('capture-target');
+            const closeBtn = document.querySelector('.card-close');
+            const actions = document.querySelector('.card-actions');
+            
+            closeBtn.style.display = 'none';
+            actions.style.display = 'none';
+
+            html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
+                closeBtn.style.display = 'block';
+                actions.style.display = 'flex';
+
+                const link = document.createElement('a');
+                link.download = `Stardrop-${currentBookForDrink.title}.png`;
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function closeDrinkCard() {
+            document.getElementById('drink-overlay').classList.remove('show');
         }
 
         function getGlassIcon(glass) {
@@ -938,27 +762,10 @@
         function toggleFavorite() {
             if(!currentBookForDrink) return;
             const title = currentBookForDrink.title;
-            // 检查是否在任一组
-            let foundInGroup = null;
-            for(let g in favoriteGroups) {
-                if(favoriteGroups[g].includes(title)) {
-                    foundInGroup = g;
-                    break;
-                }
-            }
-
-            if(foundInGroup) {
-                // 已收藏 -> 取消收藏 (从该组移除)
-                const idx = favoriteGroups[foundInGroup].indexOf(title);
-                favoriteGroups[foundInGroup].splice(idx, 1);
-            } else {
-                // 未收藏 -> 加入默认组
-                if(!favoriteGroups["默认收藏"]) favoriteGroups["默认收藏"] = [];
-                favoriteGroups["默认收藏"].push(title);
-            }
-            
-            saveCloudData();
+            const idx = favoriteDrinks.indexOf(title);
+            if(idx === -1) { favoriteDrinks.push(title); } else { favoriteDrinks.splice(idx, 1); }
             updateFavIconState();
+            saveCloudData(); 
             if(currentBarTab === 'fav') renderFavorites(); 
         }
 
@@ -969,6 +776,28 @@
             } else {
                 btn.classList.remove('active');
             }
+        }
+
+        function renderFavorites() {
+            const container = document.getElementById('fav-container');
+            container.innerHTML = '';
+            if(favoriteDrinks.length === 0) {
+                container.innerHTML = '<div style="color:#ccc;text-align:center;width:100%;margin-top:20px;">酒窖空空如也...<br>去点一杯并收藏吧。</div>';
+                return;
+            }
+            let allBooksMap = {};
+            for(let c in myBookData) myBookData[c].forEach(b => allBooksMap[getBookObject(b).title] = getBookObject(b));
+            favoriteDrinks.forEach(title => {
+                const book = allBooksMap[title];
+                if(book) {
+                    const drink = getDrinkForBook(title, book.isMystery);
+                    const div = document.createElement('div');
+                    div.className = 'fav-item';
+                    div.onclick = () => showDrinkCard(book);
+                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:#aaa;">${drink.base}</div>`;
+                    container.appendChild(div);
+                }
+            });
         }
 
         function toggleSidebar() {
