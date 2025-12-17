@@ -2,178 +2,373 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>我的世界阅读记录 - 赛博天使修复版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的世界阅读记录 - 星之果实餐吧版</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     
     <style>
+        /* --- 🎨 基础配色 --- */
         :root {
             --primary-color: #7cb342; 
             --bg-main: #cbe3f7;
             --bg-panel: #ffffff;
             --text-dark: #5d4037;      
-            --fusion-bg: #0d0221;
-            --fusion-pink: #ff00ff;
-            --fusion-cyan: #00ffff;
-            --fusion-purple: #bd00ff;
-            --fusion-win-bg: #2a2a2a;
-            --fusion-text: #e0e0e0;
-            --font-title: 'Press Start 2P', cursive;
-            --font-body: 'VT323', monospace;
-            --retro-border-outset: 3px solid;
-            --retro-border-color-outset: #ffffff #808080 #808080 #ffffff;
-            --retro-border-inset: 3px solid;
-            --retro-border-color-inset: #808080 #ffffff #ffffff #808080;
+            
+            /* 🐔 星露谷田园风专用变量 */
+            --sdv-wood-dark: #4a2810;  /* 深木色 */
+            --sdv-wood-light: #e0a663; /* 浅木色 */
+            --sdv-blue-ui: #2d3690;    /* UI深蓝背景 */
+            --sdv-cream: #ffefcd;      /* 纸张奶油色 */
+            --sdv-border-gold: #f8b32e;/* 金色边框 */
+            --sdv-green: #48a826;      /* 成功绿 */
+            --sdv-red: #e63e3e;        /* 按钮红 */
+            --sdv-text-brown: #3f1807; /* 主要文字褐 */
+            
+            /* 像素边框模拟 (Box Shadow大法) */
+            --pixel-box-shadow: 
+                inset 3px 3px 0px rgba(255,255,255,0.2),
+                inset -3px -3px 0px rgba(0,0,0,0.3),
+                3px 0px 0px #000, -3px 0px 0px #000, 
+                0px 3px 0px #000, 0px -3px 0px #000;
         }
 
-        html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; }
-        
+        /* 基础样式 */
+        body { margin: 0; padding: 0; background-color: var(--bg-main); font-family: "Microsoft YaHei", sans-serif; display: flex; height: 100vh; overflow: hidden; transition: background-color 0.5s ease; }
         #left-stage { flex: 1; position: relative; width: 100%; height: 100%; overflow: hidden; }
         #map-container { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 1; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 1; transform: scale(1); visibility: visible; }
         #main { width: 100%; height: 100%; }
 
-        /* UI Layer */
+        /* =========================================
+           🍺 星之果实餐吧 UI 层 (Stardew Valley Style)
+           ========================================= */
         #bar-interface {
             width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: 10;
-            background-color: var(--fusion-bg);
-            background-image: linear-gradient(rgba(189, 0, 255, 0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(189, 0, 255, 0.2) 1px, transparent 1px);
-            background-size: 30px 30px;
+            
+            /* 这里的背景色作为底色，与半透明图片混合 */
+            background-color: #2a1d2a; 
+            
             display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
             opacity: 0; visibility: hidden; pointer-events: none; transform: scale(1.1);
-            transition: all 0.2s steps(5); color: var(--fusion-text); padding-top: 40px; box-sizing: border-box; font-family: var(--font-body);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            color: var(--sdv-text-brown); padding-top: 20px; box-sizing: border-box;
+            font-family: 'VT323', monospace; 
+            overflow: hidden; /* 防止伪元素溢出 */
         }
-        #bar-interface::before { content: " "; display: block; position: absolute; top: 0; left: 0; bottom: 0; right: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none; }
+
+        /* 🌲 新增：背景图片层 (70%透明度) */
+        #bar-interface::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* 确保图片路径正确 */
+            background-image: url('8766400c5c1bdb4a4b48b00aedb331d.jpg'); 
+            background-size: cover;
+            background-position: center;
+            /* 0.3 不透明度 = 70% 透明度 */
+            opacity: 0.3; 
+            z-index: -1;
+            /* 可选：稍微模糊一点让文字更清晰 */
+            filter: blur(2px) brightness(0.6); 
+        }
 
         body.bar-mode #map-container { opacity: 0; transform: scale(0.9); visibility: hidden; }
         body.bar-mode #bar-interface { opacity: 1; visibility: visible; pointer-events: auto; transform: scale(1); }
 
-        .cyber-window { background: var(--fusion-win-bg); border: 2px solid var(--fusion-pink); box-shadow: 6px 6px 0px rgba(0,255,255,0.3); position: relative; padding-top: 25px; }
-        .cyber-window::before { content: '♥ SYSTEM_OVERRIDE ♥'; position: absolute; top: 0; left: 0; right: 0; height: 22px; background: linear-gradient(90deg, var(--fusion-pink), var(--fusion-purple)); color: white; font-family: var(--font-title); font-size: 10px; display: flex; align-items: center; padding-left: 5px; border-bottom: 2px solid var(--fusion-pink); }
-
-        .bar-nav { display: flex; gap: 10px; margin-bottom: 30px; z-index: 20; }
-        .bar-nav-item { padding: 8px 12px; background: #000; border: 2px solid var(--fusion-cyan); color: var(--fusion-cyan); cursor: pointer; font-family: var(--font-title); font-size: 12px; box-shadow: 3px 3px 0 var(--fusion-purple); transition: 0.1s; }
-        .bar-nav-item.active { background: var(--fusion-pink); color: #fff; border-color: #fff; box-shadow: 3px 3px 0 #fff; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-
-        .bar-content { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; overflow-y: auto; position: relative; z-index: 5; padding-bottom: 100px;}
-        .bar-view { display: none; width: 100%; flex-direction: column; align-items: center; width: 90%; }
-        .bar-view.active { display: flex; }
-
-        .neon-sign { font-family: var(--font-title); font-size: 2rem; color: #fff; text-shadow: 4px 0 var(--fusion-pink), -4px 0 var(--fusion-cyan); margin-bottom: 15px; text-align: center; line-height: 1.5; animation: glitchText 0.3s infinite; }
-        @keyframes glitchText { 0% { transform: skew(0deg); } 20% { transform: skew(-2deg); } 40% { transform: skew(2deg); } 60% { transform: skew(-1deg); } 80% { transform: skew(1deg); } 100% { transform: skew(0deg); } }
-
-        .random-btn { margin-top: 30px; width: 200px; height: 80px; background: #000; border: 4px solid var(--fusion-pink); box-shadow: 0 0 20px var(--fusion-pink), inset 0 0 20px var(--fusion-pink); color: var(--fusion-pink); font-family: var(--font-title); font-size: 14px; cursor: pointer; transition: all 0.1s; position: relative; overflow: hidden; text-transform: uppercase; }
-        .random-btn::before { content: ">> INJECT <<"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 2; }
-        .random-btn:hover { background: var(--fusion-pink); color: #fff; box-shadow: 0 0 40px var(--fusion-pink); }
-        .random-btn:active { transform: scale(0.95); }
-
-        .filter-group { background: rgba(0, 0, 0, 0.8); border: 1px solid var(--fusion-cyan); box-shadow: 5px 5px 0 var(--fusion-purple); position: relative; padding: 20px; margin-bottom: 20px; width: 100%; box-sizing: border-box; }
-        .filter-title { color: var(--fusion-pink); font-family: var(--font-title); font-size: 12px; margin-bottom: 10px; display: block; border-bottom: 1px dashed var(--fusion-cyan); padding-bottom: 5px; }
-        .filter-options { display: flex; gap: 8px; flex-wrap: wrap; }
-        .filter-opt { padding: 5px 10px; border: 1px solid #555; background: #111; cursor: pointer; color: #aaa; transition: 0.2s; font-family: var(--font-body); font-size: 18px; }
-        .filter-opt.selected { background: var(--fusion-cyan); color: #000; border-color: var(--fusion-cyan); font-weight: bold; }
-
-        .produce-btn { width: 100%; padding: 15px; background: linear-gradient(90deg, #b00b69, #4b0082); border: 2px solid #fff; color: #fff; font-family: var(--font-title); font-size: 14px; cursor: pointer; margin-top: 15px; box-shadow: 0 0 15px rgba(255,255,255,0.5); text-shadow: 2px 2px 0 #000; }
-
-        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; width: 100%; padding: 0; }
-        .fav-item { background: rgba(0,0,0,0.5); border: 1px solid var(--fusion-cyan); padding: 15px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; }
-        .fav-icon { font-size: 32px; margin-bottom: 5px; }
-        .fav-name { font-size: 16px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; width: 100%; white-space: nowrap; font-family: var(--font-body);}
-
-        /* Drink Card */
-        .drink-card-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(2px); display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50; }
-        .drink-card-overlay.show { opacity: 1; pointer-events: auto; }
-        .drink-card { background: #c0c0c0; width: 400px; max-width: 90%; padding: 40px 20px 20px 20px; border-top: 2px solid #fff; border-left: 2px solid #fff; border-bottom: 2px solid #000; border-right: 2px solid #000; box-shadow: 15px 15px 0px rgba(0,0,0,0.5); position: relative; text-align: center; color: #000; transform: scale(0.8); opacity: 0; transition: all 0.3s; font-family: var(--font-body); border: 4px solid red; max-height: 85vh; overflow-y: auto; }
-        .drink-card-overlay.show .drink-card { transform: scale(1); opacity: 1; }
-        .drink-card::before { content: 'ERROR: DRINK_FOUND'; position: absolute; top: 4px; left: 4px; right: 4px; height: 25px; background: navy; color: white; font-family: var(--font-body); font-weight: bold; font-size: 16px; display: flex; align-items: center; padding-left: 5px; }
-        .card-close { position: absolute; top: 6px; right: 6px; width: 20px; height: 20px; background: #c0c0c0; border: 1px solid #000; text-align: center; cursor: pointer; color: #000; z-index: 2; font-weight: bold; line-height: 18px;}
-        .card-glass-icon { font-size: 70px; margin: 10px 0; display: inline-block; filter: drop-shadow(4px 4px 0 var(--fusion-pink)); }
-        .card-title { font-family: var(--font-title); font-size: 16px; margin-bottom: 5px; color: #000; text-shadow: 2px 2px 0 #fff; line-height: 1.4; }
-        .card-subtitle { font-size: 18px; color: var(--fusion-pink); margin-bottom: 15px; text-transform: uppercase; font-weight: bold; background: #000; display: inline-block; padding: 0 5px; }
-        .card-section { text-align: left; margin-bottom: 10px; padding: 10px; border: 1px dotted #000; background: #fff; }
-        .card-label { font-size: 14px; color: navy; font-weight: bold; margin-bottom: 4px; display: block; font-family: var(--font-body); text-decoration: underline; }
-        .card-text { font-size: 18px; color: #000; line-height: 1.2; outline: none; }
-        .tag-pill { display: inline-block; padding: 2px 6px; background: #000; color: var(--fusion-cyan); font-size: 14px; margin-right: 5px; margin-top: 5px; font-family: var(--font-body); }
-        .card-actions { position: absolute; top: 35px; left: 20px; display: flex; gap: 8px; }
-        .action-icon-btn { font-size: 18px; cursor: pointer; color: #000; background: #c0c0c0; border: 1px solid #fff; border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 4px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
-        .action-icon-btn.active { background: #ffff00; } .action-icon-btn.saved { background: #00ff00; }
-        [contenteditable="true"] { border: 1px dashed transparent; transition: all 0.3s; padding: 2px 5px; border-radius: 4px; }
-        [contenteditable="true"]:hover { border-color: #555; background: rgba(0,0,0,0.05); cursor: text; }
-        [contenteditable="true"]:focus { border-color: red; background: #ffffcc; outline: none; }
-
-        /* Animation */
-        #mixing-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--fusion-bg); z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-        #mixing-overlay.active { opacity: 1; pointer-events: auto; }
-        .mixing-bowl { width: 150px; height: 150px; position: relative; margin-bottom: 40px; }
-        .mixing-bowl::before { content: '💊'; font-size: 100px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: spin3D 1s infinite linear; }
-        @keyframes spin3D { 0% { transform: translate(-50%, -50%) rotate(0deg) scale(1); } 50% { transform: translate(-50%, -50%) rotate(180deg) scale(1.2); } 100% { transform: translate(-50%, -50%) rotate(360deg) scale(1); } }
-        .mix-progress-container { width: 80%; height: 20px; background: #c0c0c0; border: 2px solid #fff; border-bottom: 2px solid #000; border-right: 2px solid #000; position: relative; }
-        .mix-progress-bar { height: 100%; width: 0%; background: navy; transition: width 0.1s steps(5); }
-        .mix-text { color: var(--fusion-cyan); font-size: 20px; font-family: var(--font-body); margin-top: 10px; text-align: center; }
-        #big-reveal-icon { font-size: 120px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; filter: drop-shadow(5px 5px 0 #fff); color: var(--fusion-pink); transition: all 0.3s; }
-        #big-reveal-icon.popping { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-
-        /* Panel & Sidebar (Desktop Default) */
-        #control-panel-wrapper { position: relative; flex: 0 0 360px; width: 360px; height: 100%; z-index: 100; transition: all 0.3s ease-in-out; margin-right: 0; }
-        #control-panel-wrapper.collapsed { margin-right: -360px; }
-        #control-panel-body { width: 100%; height: 100%; background-color: var(--bg-panel); box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; }
-        
-        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 101; }
-        #toggle-sidebar-btn:hover { filter: brightness(0.95); }
-
-        /* 📱 Mobile Responsive (Fixed) */
-        @media (max-width: 768px) {
-            html, body { width: 100%; height: 100%; overflow: hidden; }
-            #left-stage { 
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; 
-            }
-            #map-container, #main { width: 100%; height: 100%; }
-
-            #control-panel-wrapper {
-                position: fixed; bottom: 0; left: 0; width: 100%; height: 85vh;
-                margin-right: 0; z-index: 9000;
-                transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-                transform: translateY(0); /* 激活时展开 */
-            }
-            #control-panel-wrapper.collapsed {
-                margin-right: 0; transform: translateY(110%); /* 收起 */
-            }
-            #control-panel-body {
-                border-radius: 20px 20px 0 0; padding: 20px;
-                border-top: 4px solid var(--fusion-pink);
-            }
-
-            /* 悬浮按钮修复：强制固定定位 */
-            #toggle-sidebar-btn {
-                position: fixed !important; 
-                bottom: 30px !important; 
-                right: 25px !important; 
-                left: auto !important; 
-                top: auto !important; 
-                transform: none !important;
-                width: 60px !important; height: 60px !important; 
-                border-radius: 50%; font-size: 24px;
-                background: #000; border: 2px solid var(--fusion-cyan); 
-                box-shadow: 0 0 15px var(--fusion-pink);
-                color: transparent !important; /* 隐藏箭头文字 */
-                z-index: 9999 !important; /* 保证最上层 */
-                display: flex; align-items: center; justify-content: center;
-            }
-            #toggle-sidebar-btn.btn-expanded::before { content: "▼"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
-            #toggle-sidebar-btn:not(.btn-expanded)::before { content: "▲"; color: var(--fusion-cyan); font-size: 24px; position:absolute;}
+        /* 导航栏 */
+        .bar-nav { display: flex; gap: 10px; margin-bottom: 20px; z-index: 20; background: #6b4322; padding: 10px; border-radius: 10px; border: 3px solid #3c1e0a; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .bar-nav-item {
+            padding: 10px 20px; 
+            background: var(--sdv-wood-light);
+            color: var(--sdv-text-brown);
+            cursor: pointer; font-size: 20px; /* 调整大小 */
             
-            #book-list-display { padding-bottom: 80px; }
+            /* ✨ 字体修改：中文使用宋体制造像素感 */
+            font-family: 'Press Start 2P', 'SimSun', monospace; 
+            font-weight: bold;
+            letter-spacing: 2px;
+
+            border: 2px solid #593111;
+            box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+            text-transform: uppercase;
+            border-radius: 4px;
         }
+        .bar-nav-item:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .bar-nav-item:active { transform: translateY(2px); box-shadow: none; }
+        .bar-nav-item.active {
+            background: var(--sdv-red);
+            color: #fff;
+            border-color: #7a1515;
+            text-shadow: 2px 2px 0 #333;
+        }
+
+        /* 内容容器 */
+        .bar-content { 
+            width: 90%; max-width: 600px; flex: 1; 
+            background: var(--sdv-blue-ui);
+            border: 4px solid var(--sdv-border-gold);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 0 50px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; align-items: center; 
+            overflow-y: auto; position: relative; padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .bar-content::-webkit-scrollbar { width: 12px; }
+        .bar-content::-webkit-scrollbar-track { background: #1c2363; }
+        .bar-content::-webkit-scrollbar-thumb { background: var(--sdv-border-gold); border-radius: 6px; border: 2px solid #1c2363; }
+
+        .bar-view { display: none; width: 100%; flex-direction: column; align-items: center; animation: fadeIn 0.4s; }
+        .bar-view.active { display: flex; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 标题 */
+        .neon-sign {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.8rem; color: #fff;
+            text-shadow: 3px 3px 0 #000, -1px -1px 0 #2a1d42;
+            margin-bottom: 20px; line-height: 1.5; text-align: center;
+            background: linear-gradient(to bottom, #74a7f7, #3144b5);
+            -webkit-background-clip: text;
+            margin-top: 40px;
+        }
+
+        /* 按钮 */
+        .random-btn, .produce-btn {
+            margin-top: 30px; width: 200px; padding: 15px;
+            background: var(--sdv-green);
+            border: none;
+            color: #fff;
+            font-family: 'Press Start 2P', 'SimSun', monospace; /* 按钮也应用像素字体 */
+            font-size: 16px; cursor: pointer;
+            box-shadow: var(--pixel-box-shadow);
+            transition: all 0.1s;
+            text-shadow: 2px 2px 0 #333;
+            border-radius: 4px;
+        }
+        .random-btn:hover, .produce-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
+        .random-btn:active, .produce-btn:active { transform: scale(0.95); box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+
+        /* 筛选面板 */
+        .filter-group {
+            background: var(--sdv-cream); 
+            padding: 15px; margin-bottom: 15px; width: 90%; 
+            border: 2px solid #cfaa74;
+            border-radius: 8px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .filter-title { color: var(--sdv-text-brown); font-size: 18px; margin-bottom: 10px; display: block; font-weight: bold; font-family: 'Press Start 2P', 'SimSun'; font-size: 12px;}
+        .filter-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .filter-opt {
+            padding: 5px 10px; border: 2px solid #d4bba3; font-size: 16px;
+            cursor: pointer; color: #777; transition: 0.1s; background: #fff;
+            border-radius: 4px;
+            font-family: 'SimSun', monospace; /* 选项也是 */
+        }
+        .filter-opt:hover { border-color: var(--sdv-wood-light); color: var(--sdv-text-brown); }
+        .filter-opt.selected { 
+            background: var(--sdv-wood-light); 
+            border-color: #8c5828; 
+            color: #fff; text-shadow: 1px 1px 0 #333;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* 收藏夹 */
+        .fav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; width: 100%; padding: 10px; }
+        .fav-item {
+            background: var(--sdv-wood-dark); 
+            border: 2px solid #3c1e0a; 
+            padding: 10px; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+        }
+        .fav-item:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.5); border-color: var(--sdv-border-gold); }
+        .fav-icon { font-size: 30px; margin-bottom: 5px; }
+        .fav-name { color: #fff; font-size: 14px; text-shadow: 1px 1px 0 #000; overflow: hidden; text-overflow: ellipsis; width: 100%; text-align: center; font-family: 'VT323';}
+
+        /* 饮品卡 */
+        .drink-card-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(2px);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 50;
+        }
+        .drink-card-overlay.show { opacity: 1; pointer-events: auto; }
+        
+        .drink-card {
+            background: var(--sdv-cream);
+            width: 360px; padding: 25px;
+            border: 4px solid var(--sdv-text-brown);
+            border-radius: 2px;
+            position: relative; 
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.4);
+            text-align: center; color: var(--sdv-text-brown);
+            transform: translateY(20px); transition: transform 0.3s;
+            font-family: 'VT323', monospace;
+        }
+        .drink-card::before {
+            content: ''; position: absolute; top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 2px dashed #d4bba3; pointer-events: none;
+        }
+
+        .drink-card-overlay.show .drink-card { transform: translateY(0); }
+        
+        .card-close { 
+            position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: var(--sdv-red); 
+            font-family: 'Press Start 2P'; z-index: 2;
+        }
+        .card-close:hover { transform: scale(1.2); }
+        
+        .card-glass-icon { 
+            font-size: 60px; margin: 15px 0 10px 0; display: inline-block; 
+            filter: drop-shadow(3px 3px 0 rgba(0,0,0,0.2));
+            animation: floatIcon 3s ease-in-out infinite;
+        }
+        @keyframes floatIcon { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+        .card-title { 
+            font-family: 'Press Start 2P', 'SimSun', monospace; /* 标题应用像素字体 */
+            font-size: 18px; margin-bottom: 5px; 
+            color: var(--sdv-text-brown); line-height: 1.4;
+        }
+        .card-subtitle { 
+            font-size: 16px; color: #888; margin-bottom: 20px; 
+            text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #d4bba3; padding-bottom: 10px;
+        }
+        
+        .card-section { text-align: left; margin-bottom: 15px; padding: 5px; position: relative; z-index: 1;}
+        .card-label { font-size: 14px; color: #a05050; font-weight: bold; margin-bottom: 2px; display: block; font-family: 'Press Start 2P', 'SimSun'; font-size: 10px;}
+        .card-text { font-size: 20px; color: #4a2810; line-height: 1.2; outline: none; background: transparent; border: none; font-weight: bold;}
+        
+        .tag-pill { 
+            display: inline-block; padding: 2px 6px; 
+            background: var(--sdv-blue-ui); color: #fff;
+            font-size: 14px; margin-right: 5px; margin-top: 5px; border-radius: 4px;
+            box-shadow: 1px 1px 0 #000;
+        }
+
+        .card-actions {
+            position: absolute; top: 10px; left: 15px;
+            display: flex; gap: 10px; z-index: 2;
+        }
+        .action-icon-btn {
+            font-size: 20px; cursor: pointer; color: #888; transition: 0.2s;
+            background: transparent; border: none; padding: 0; outline: none;
+        }
+        .action-icon-btn:hover { color: var(--sdv-wood-light); transform: scale(1.2); }
+        .action-icon-btn.active { color: #ffd700; text-shadow: 1px 1px 0 #b8860b; }
+        .action-icon-btn.saved { color: var(--sdv-green); }
+
+        /* 酿造动画 */
+        #mixing-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 60;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s;
+        }
+        #mixing-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .mixing-bowl {
+            width: 80px; height: 100px; 
+            background: #6d4c41; 
+            border: 4px solid #3e2723;
+            border-radius: 10px;
+            box-shadow: inset 5px 0 0 rgba(0,0,0,0.2);
+            margin-bottom: 40px; position: relative;
+            animation: bounceKeg 0.5s infinite alternate;
+        }
+        .mixing-bowl::before {
+            content:''; position: absolute; top: -10px; left: -10px; right: -10px; height: 20px;
+            background: #8d6e63; border: 4px solid #3e2723; border-radius: 4px;
+        }
+        .mixing-bowl::after {
+            content: '💤'; position: absolute; top: -40px; right: -20px; font-size: 24px;
+            animation: floatBubble 1s infinite;
+        }
+
+        @keyframes bounceKeg {
+            0% { transform: scale(1, 1) translateY(0); }
+            100% { transform: scale(1.1, 0.9) translateY(5px); }
+        }
+        @keyframes floatBubble {
+            0% { opacity: 0; transform: translateY(0); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+
+        .mix-progress-container { 
+            width: 200px; height: 20px; border: 4px solid #3e2723; 
+            background: #222; border-radius: 10px; overflow: hidden; margin-bottom: 20px;
+        }
+        .mix-progress-bar {
+            height: 100%; width: 0%; background: linear-gradient(to right, #76c7c0, #4db6ac);
+            transition: width 0.1s steps(4);
+        }
+        .mix-text { 
+            color: #fff; font-size: 20px; font-family: 'Press Start 2P'; 
+            letter-spacing: 2px; min-height: 20px; text-align: center;
+            text-shadow: 2px 2px 0 #000;
+        }
+
+        #big-reveal-icon {
+            font-size: 80px; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0); opacity: 0;
+            filter: drop-shadow(0 0 10px #fff);
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #big-reveal-icon.popping { opacity: 1; transform: translate(-50%, -50%) scale(1.5); }
+
+        /* 侧边栏 */
+        #control-panel-wrapper { position: relative; flex: 0 0 360px; width: 360px; height: 100%; z-index: 10; transition: all 0.3s ease-in-out; margin-right: 0; }
+        #control-panel-wrapper.collapsed { margin-right: -360px; }
+        #control-panel-body { width: 100%; height: 100%; background-color: var(--bg-panel); box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1); padding: 30px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden; transition: background-color 0.5s ease; }
+        #control-panel-wrapper.collapsed #control-panel-body { box-shadow: none; }
+        #toggle-sidebar-btn { position: absolute; left: -24px; top: 50%; transform: translateY(-50%); width: 24px; height: 60px; background-color: var(--bg-panel); border: 1px solid var(--border-color); border-right: none; border-radius: 8px 0 0 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--primary-color); box-shadow: -2px 0 5px rgba(0,0,0,0.05); z-index: 11; transition: background-color 0.5s ease, color 0.5s ease; }
+        #toggle-sidebar-btn:hover { filter: brightness(0.95); }
+        h2 { color: var(--text-dark); margin-top: 0; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; font-size: 22px; text-align: center; letter-spacing: 2px; font-weight: 600; }
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: var(--text-dark); font-weight: bold; font-size: 14px; }
+        select, input { width: 100%; padding: 12px 15px; border: 2px solid var(--border-color); border-radius: 12px; box-sizing: border-box; outline: none; transition: 0.3s; background: rgba(255,255,255,0.5); color: var(--text-dark); font-size: 14px; }
+        select:focus, input:focus { border-color: var(--primary-color); background: #fff; box-shadow: 0 0 8px rgba(0,0,0,0.1); }
+        button#add-btn { width: 100%; padding: 14px; background: var(--primary-color); color: white; border: none; border-radius: 12px; cursor: pointer; font-size: 16px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, background 0.3s; }
+        button#add-btn:hover { background-color: var(--primary-dark); transform: translateY(-2px); }
+        .mode-switch-container { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.03); padding: 10px 15px; border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border-color); }
+        .switch-label { font-weight: bold; color: var(--text-dark); display: flex; align-items: center; gap: 8px; font-size: 13px;}
+        .toggle-checkbox { display: none; }
+        .toggle-slot { position: relative; height: 20px; width: 40px; border: 2px solid var(--border-color); border-radius: 20px; background-color: white; transition: background-color 250ms; cursor: pointer; }
+        .toggle-button { transform: translate(2px, 2px); position: absolute; height: 16px; width: 16px; border-radius: 50%; background-color: #ccc; box-shadow: 0 1px 3px rgba(0,0,0,0.3); transition: background-color 250ms, box-shadow 250ms, transform 250ms cubic-bezier(.2, .4, .0, 1); }
+        #mystery-toggle:checked ~ .toggle-slot { background-color: #7e57c2; border-color: #7e57c2; }
+        #mystery-toggle:checked ~ .toggle-slot .toggle-button { background-color: #fff; transform: translate(22px, 2px); }
+        #bar-toggle:checked ~ .toggle-slot { background-color: #ff9900; border-color: #ff9900; }
+        #bar-toggle:checked ~ .toggle-slot .toggle-button { background-color: #fff; transform: translate(22px, 2px); }
+        #book-list-display { margin-top: 15px; flex: 1; overflow-y: auto; padding-right: 5px;}
+        #book-list-display::-webkit-scrollbar { width: 5px; }
+        #book-list-display::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        .country-item { margin-bottom: 15px; background: rgba(255,255,255,0.8); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); transition: 0.2s; border-left: 5px solid var(--primary-color); }
+        .country-head { font-weight: bold; color: var(--text-dark); display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px; }
+        .book-row { display: flex; gap: 10px; padding: 10px 0; border-top: 1px dashed var(--border-color); font-size: 14px; color: var(--text-light); transition: background 0.2s; align-items: center;}
+        .book-cover { width: 40px; height: 55px; background: #eee; border-radius: 4px; object-fit: cover; box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
+        .book-info { flex: 1; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+        .book-title { font-weight: bold; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .book-meta { font-size: 12px; color: #999; margin-top: 3px; display: flex; align-items: center; gap: 5px;}
+        .mystery-tag { background-color: var(--tag-bg); color: var(--tag-text); padding: 1px 5px; border-radius: 4px; font-size: 10px; font-weight: bold; border: 1px solid var(--border-color); }
+        .btn-group { display: flex; gap: 5px; align-items: center; }
+        .action-btn { cursor: pointer; padding: 4px 8px; border-radius: 6px; font-size: 12px; text-align: center; border: 1px solid transparent; background: rgba(255,255,255,0.6); }
+        .edit-btn { color: var(--primary-color); border-color: var(--primary-color); }
+        .delete-btn { color: var(--accent-warm); border-color: var(--accent-warm); }
+        .bar-btn { color: #ff9900; border-color: #ff9900; font-size: 14px; }
+        .action-btn:hover { filter: brightness(0.95); transform: translateY(-1px); }
+        @media (max-width: 768px) { body { flex-direction: column; overflow: auto; } #left-stage { height: 50vh; flex: none; } #control-panel-wrapper { height: auto; flex: none; width: 100%; } }
     </style>
 </head>
 <body>
     <div id="loading-mask">
         <div class="spinner"></div>
-        <div id="loading-text">Downloading Angel.exe...</div>
+        <div id="loading-text">系统初始化中...</div>
     </div>
 
     <div id="left-stage">
@@ -181,97 +376,101 @@
         
         <div id="bar-interface">
             <div id="mixing-overlay">
-                <div class="mixing-bowl">
-                    <div class="mix-progress-container"><div class="mix-progress-bar" id="mix-bar"></div></div>
-                </div>
-                <div class="mix-text" id="mix-text">CONNECTING...</div>
+                <div class="mixing-bowl"></div>
+                <div class="mix-progress-container"><div class="mix-progress-bar" id="mix-bar"></div></div>
+                <div class="mix-text" id="mix-text">BREWING...</div>
                 <div id="big-reveal-icon"></div>
             </div>
 
             <div class="bar-nav">
-                <div class="bar-nav-item active" onclick="switchBarTab('random')">♥ GACHA ♥</div>
-                <div class="bar-nav-item" onclick="switchBarTab('filter')">⚙️ CONFIG</div>
-                <div class="bar-nav-item" onclick="switchBarTab('fav')">📁 LOGS</div>
+                <div class="bar-nav-item active" onclick="switchBarTab('random')">🎁 每日特调</div>
+                <div class="bar-nav-item" onclick="switchBarTab('filter')">🍺 吧台</div>
+                <div class="bar-nav-item" onclick="switchBarTab('fav')">🍷 酒窖</div>
             </div>
 
             <div class="bar-content">
-                <div id="view-random" class="bar-view active" style="text-align: center;">
-                    <div class="neon-sign">✝ CYBER<br>ANGEL BAR ✝</div>
-                    <div style="color:var(--fusion-pink); margin-bottom:30px; font-family:var(--font-body); font-size: 22px; font-weight: bold; text-shadow: 1px 1px #fff;">"Is this reality or just another stream?"</div>
-                    <button class="random-btn" onclick="serveRandomDrink()">💊 OVERDOSE 💊</button>
+                <div id="view-random" class="bar-view active">
+                    <div class="neon-sign">STARDROP SALOON<br><span style="font-size:16px;">Reading Edition</span></div>
+                    <div style="color:#eee; margin-bottom:30px; font-size: 20px; font-family:'VT323';">“生活就像可乐饼，热腾腾的才好吃。”</div>
+                    <button class="random-btn" onclick="serveRandomDrink()">与之共饮</button>
                 </div>
 
                 <div id="view-filter" class="bar-view">
-                    <div class="filter-group cyber-window">
-                        <span class="filter-title">BASE_SPIRIT.exe</span>
+                    <div class="filter-group">
+                        <span class="filter-title">基酒选择 (Base)</span>
                         <div class="filter-options" id="opt-base">
-                            <div class="filter-opt selected" onclick="selectOpt(this, 'base', 'any')">ALL</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Gin')">GIN</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Whiskey')">WHISKY</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Rum')">RUM</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Vodka')">VODKA</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Tequila')">TEQ</div>
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'base', 'any')">任意</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Gin')">金酒</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Whiskey')">威士忌</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Rum')">朗姆</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Vodka')">伏特加</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'base', 'Tequila')">龙舌兰</div>
                         </div>
                     </div>
-                    <div class="filter-group cyber-window">
-                        <span class="filter-title">FLAVOR_MATRIX.dll</span>
+
+                    <div class="filter-group">
+                        <span class="filter-title">风味偏好</span>
                         <div class="filter-options" id="opt-taste">
-                            <div class="filter-opt selected" onclick="selectOpt(this, 'taste', 'any')">VOID</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sour')">SOUR</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sweet')">SWEET</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'bitter')">BITTER</div>
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'taste', 'any')">无限制</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sour')">酸 (Sour)</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'sweet')">甜 (Sweet)</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'taste', 'bitter')">苦 (Bitter)</div>
                         </div>
                     </div>
-                    <div class="filter-group cyber-window">
-                        <span class="filter-title">STRESS_LEVEL</span>
+                    <div class="filter-group">
+                        <span class="filter-title">烈度等级</span>
                         <div class="filter-options" id="opt-strength">
-                            <div class="filter-opt selected" onclick="selectOpt(this, 'strength', 'any')">RNG</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'light')">LOW</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'medium')">MID</div>
-                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'strong')">HIGH</div>
+                            <div class="filter-opt selected" onclick="selectOpt(this, 'strength', 'any')">任意</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'light')">轻微 (Low)</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'medium')">适中 (Med)</div>
+                            <div class="filter-opt" onclick="selectOpt(this, 'strength', 'strong')">强烈 (High)</div>
                         </div>
                     </div>
-                    <button class="produce-btn" onclick="serveFilteredDrink()">⚡ STREAM START ⚡</button>
+                    <button class="produce-btn" onclick="serveFilteredDrink()">>>> 开始酿造 <<<</button>
                 </div>
 
                 <div id="view-fav" class="bar-view">
-                    <div class="fav-grid" id="fav-container"></div>
+                    <div class="fav-grid" id="fav-container">
+                        </div>
                 </div>
             </div>
             
             <div class="drink-card-overlay" id="drink-overlay">
                 <div class="drink-card" id="capture-target">
                     <div class="card-actions">
-                        <button class="action-icon-btn" id="btn-fav" onclick="toggleFavorite()">★</button>
-                        <button class="action-icon-btn" id="btn-save" onclick="saveCurrentCard()">💾</button>
-                        <button class="action-icon-btn" id="btn-download" onclick="downloadCard()">📥</button>
+                        <button class="action-icon-btn" id="btn-fav" onclick="toggleFavorite()" title="收藏">★</button>
+                        <button class="action-icon-btn" id="btn-save" onclick="saveCurrentCard()" title="保存修改">💾</button>
+                        <button class="action-icon-btn" id="btn-download" onclick="downloadCard()" title="下载卡片">📥</button>
                     </div>
+
                     <div class="card-close" onclick="closeDrinkCard()">X</div>
+                    
                     <div class="card-glass-icon" id="card-icon">🍸</div>
-                    <div class="card-title" id="card-title">Book Title</div>
+                    <div class="card-title" id="card-title">书名</div>
                     <div class="card-subtitle" id="card-base">Base Spirit</div>
+                    
                     <div class="card-section">
-                        <span class="card-label">COMMENT.txt</span>
+                        <span class="card-label">FLAVOR PROFILE</span>
                         <div class="card-text" id="card-intro" contenteditable="true" spellcheck="false">...</div>
                         <div style="margin-top:5px;" id="card-tags"></div>
                     </div>
                     <div class="card-section">
-                        <span class="card-label">INGREDIENTS.dat</span>
+                        <span class="card-label">INGREDIENTS</span>
                         <div class="card-text" id="card-ingredients" contenteditable="true" spellcheck="false">...</div>
                     </div>
                     <div class="card-section">
-                        <span class="card-label">PROTOCOL.log</span>
+                        <span class="card-label">METHOD</span>
                         <div class="card-text" id="card-method" contenteditable="true" spellcheck="false">...</div>
                     </div>
-                    <div style="font-size:14px; color:blue; margin-top:15px; font-weight:bold;">VESSEL TYPE: <span id="card-glass">...</span></div>
+                    
+                    <div style="font-size:14px; color:#8d6e63; margin-top:15px; border-top: 2px dashed #d4bba3; padding-top:5px; font-family:'Press Start 2P'; font-size:10px;">GLASS TYPE: <span id="card-glass">...</span></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="toggle-sidebar-btn" onclick="toggleSidebar()">▶</div>
-    
     <div id="control-panel-wrapper">
+        <div id="toggle-sidebar-btn" onclick="toggleSidebar()">▶</div>
         <div id="control-panel-body">
             <h2>🌿 阅读记录</h2>
             <div class="mode-switch-container">
@@ -279,7 +478,7 @@
                 <label><input class="toggle-checkbox" type="checkbox" id="mystery-toggle" onchange="toggleMysteryMode()"><div class="toggle-slot"><div class="toggle-button"></div></div></label>
             </div>
             <div class="mode-switch-container">
-                <div class="switch-label"><span id="mode-icon">🍸</span> <span>赛博天使模式</span></div>
+                <div class="switch-label"><span id="mode-icon">🍻</span> <span>星之果实模式</span></div>
                 <label><input class="toggle-checkbox" type="checkbox" id="bar-toggle" onchange="toggleBarMode()"><div class="toggle-slot"><div class="toggle-button"></div></div></label>
             </div>
             <div class="input-group">
@@ -296,9 +495,11 @@
     </div>
 
     <script>
+        // ================= 核心配置与数据 =================
         const BIN_ID = '6940072543b1c97be9efcbb6'; 
         const API_KEY = '$2a$10$NK41BeroKJUHwITABG5hSOUM2STrIJgPrdkrbHXwIWmI4pHlPR2da'; 
 
+        // 🍸 鸡尾酒数据库
         const COCKTAIL_DB = [
             { id: 'negroni', base: 'Gin', profile: 'bitter', strength: 'strong', name: 'Negroni', glass: 'Rocks', intro: '苦乐参半的平衡，如同命运的玩笑。', materials: '30ml 金酒, 30ml 金巴利, 30ml 甜味美思', method: '加冰搅拌，饰以橙皮。' },
             { id: 'old_fashioned', base: 'Whiskey', profile: 'bitter', strength: 'strong', name: 'Old Fashioned', glass: 'Rocks', intro: '经典永不过时，沉稳而深邃。', materials: '45ml 波本威士忌, 1块方糖, 2滴苦精', method: '方糖浸苦精捣碎，加冰加酒搅拌。' },
@@ -319,34 +520,33 @@
         ];
 
         var myChart = echarts.init(document.getElementById('main'));
-        var myBookData = {}; var geoJsonData = null; var allCountryList = []; 
-        var isMysteryMode = false; var isBarMode = false;
-        var currentBarTab = 'random'; var currentBookForDrink = null; var favoriteDrinks = []; 
+        var myBookData = {}; 
+        var geoJsonData = null;
+        var allCountryList = []; 
+        var isMysteryMode = false; 
+        var isBarMode = false;
+        var currentBarTab = 'random';
+        var currentBookForDrink = null;
+        var favoriteDrinks = []; 
+
         var filterState = { taste: 'any', strength: 'any', base: 'any' };
+
+        // 完整 NameMap
         var nameMap = { 'Afghanistan': '阿富汗', 'Albania': '阿尔巴尼亚', 'Algeria': '阿尔及利亚', 'Andorra': '安道尔', 'Angola': '安哥拉', 'Antarctica': '南极洲', 'Antigua and Barb.': '安提瓜和巴布达', 'Argentina': '阿根廷', 'Armenia': '亚美尼亚', 'Australia': '澳大利亚', 'Austria': '奥地利', 'Azerbaijan': '阿塞拜疆', 'Bahamas': '巴哈马', 'Bahrain': '巴林', 'Bangladesh': '孟加拉国', 'Barbados': '巴巴多斯', 'Belarus': '白俄罗斯', 'Belgium': '比利时', 'Belize': '伯利兹', 'Benin': '贝宁', 'Bermuda': '百慕大', 'Bhutan': '不丹', 'Bolivia': '玻利维亚', 'Bosnia and Herz.': '波黑', 'Botswana': '博茨瓦纳', 'Brazil': '巴西', 'Brunei': '文莱', 'Bulgaria': '保加利亚', 'Burkina Faso': '布基纳法索', 'Burundi': '布隆迪', 'Cambodia': '柬埔寨', 'Cameroon': '喀麦隆', 'Canada': '加拿大', 'Cape Verde': '佛得角', 'Central African Rep.': '中非共和国', 'Chad': '乍得', 'Chile': '智利', 'China': '中国', 'Colombia': '哥伦比亚', 'Comoros': '科摩罗', 'Congo': '刚果共和国', 'Costa Rica': '哥斯达黎加', 'Croatia': '克罗地亚', 'Cuba': '古巴', 'Cyprus': '塞浦路斯', 'Czech Rep.': '捷克共和国', 'Côte d\'Ivoire': '科特迪瓦', 'Dem. Rep. Congo': '刚果民主共和国', 'Dem. Rep. Korea': '朝鲜', 'Denmark': '丹麦', 'Djibouti': '吉布提', 'Dominica': '多米尼克', 'Dominican Rep.': '多米尼加', 'Ecuador': '厄瓜多尔', 'Egypt': '埃及', 'El Salvador': '萨尔瓦多', 'Eq. Guinea': '赤道几内亚', 'Eritrea': '厄立特里亚', 'Estonia': '爱沙尼亚', 'Ethiopia': '埃塞俄比亚', 'Falkland Is.': '福克兰群岛', 'Fiji': '斐济', 'Finland': '芬兰', 'France': '法国', 'Fr. S. Antarctic Lands': '法属南半球和南极领地', 'Gabon': '加蓬', 'Gambia': '冈比亚', 'Georgia': '格鲁吉亚', 'Germany': '德国', 'Ghana': '加纳', 'Greece': '希腊', 'Greenland': '格陵兰', 'Grenada': '格林纳达', 'Guatemala': '危地马拉', 'Guinea': '几内亚', 'Guinea-Bissau': '几内亚比绍', 'Guyana': '圭亚那', 'Haiti': '海地', 'Honduras': '洪都拉斯', 'Hungary': '匈牙利', 'Iceland': '冰岛', 'India': '印度', 'Indonesia': '印度尼西亚', 'Iran': '伊朗', 'Iraq': '伊拉克', 'Ireland': '爱尔兰', 'Israel': '以色列', 'Italy': '意大利', 'Ivory Coast': '科特迪瓦', 'Jamaica': '牙买加', 'Japan': '日本', 'Jordan': '约旦', 'Kazakhstan': '哈萨克斯坦', 'Kenya': '肯尼亚', 'Korea': '韩国', 'Kosovo': '科索沃', 'Kuwait': '科威特', 'Kyrgyzstan': '吉尔吉斯斯坦', 'Lao PDR': '老挝', 'Latvia': '拉脱维亚', 'Lebanon': '黎巴嫩', 'Lesotho': '莱索托', 'Liberia': '利比里亚', 'Libya': '利比亚', 'Liechtenstein': '列支敦士登', 'Lithuania': '立陶宛', 'Luxembourg': '卢森堡', 'Madagascar': '马达加斯加', 'Malawi': '马拉维', 'Malaysia': '马来西亚', 'Mali': '马里', 'Malta': '马耳他', 'Mauritania': '毛里塔尼亚', 'Mauritius': '毛里求斯', 'Mexico': '墨西哥', 'Moldova': '摩尔多瓦', 'Monaco': '摩纳哥', 'Mongolia': '蒙古', 'Montenegro': '黑山', 'Morocco': '摩洛哥', 'Mozambique': '莫桑比克', 'Myanmar': '缅甸', 'Namibia': '纳米比亚', 'Nepal': '尼泊尔', 'Netherlands': '荷兰', 'New Zealand': '新西兰', 'Nicaragua': '尼加拉瓜', 'Niger': '尼日尔', 'Nigeria': '尼日利亚', 'North Korea': '朝鲜', 'North Macedonia': '北马其顿', 'Norway': '挪威', 'Oman': '阿曼', 'Pakistan': '巴基斯坦', 'Palestine': '巴勒斯坦', 'Panama': '巴拿马', 'Papua New Guinea': '巴布亚新几内亚', 'Paraguay': '巴拉圭', 'Peru': '秘鲁', 'Philippines': '菲律宾', 'Poland': '波兰', 'Portugal': '葡萄牙', 'Puerto Rico': '波多黎各', 'Qatar': '卡塔尔', 'Romania': '罗马尼亚', 'Russia': '俄罗斯', 'Rwanda': '卢旺达', 'S. Sudan': '南苏丹', 'Samoa': '萨摩亚', 'Saudi Arabia': '沙特阿拉伯', 'Senegal': '塞内加尔', 'Serbia': '塞尔维亚', 'Seychelles': '塞舌尔', 'Sierra Leone': '塞拉利昂', 'Singapore': '新加坡', 'Slovakia': '斯洛伐克', 'Slovenia': '斯洛文尼亚', 'Solomon Is.': '所罗门群岛', 'Somalia': '索马里', 'South Africa': '南非', 'South Korea': '韩国', 'South Sudan': '南苏丹', 'Spain': '西班牙', 'Sri Lanka': '斯里兰卡', 'Sudan': '苏丹', 'Suriname': '苏里南', 'Swaziland': '斯威士兰', 'Sweden': '瑞典', 'Switzerland': '瑞士', 'Syria': '叙利亚', 'Taiwan': '中国', 'Tajikistan': '塔吉克斯坦', 'Tanzania': '坦桑尼亚', 'Thailand': '泰国', 'Timor-Leste': '东帝汶', 'Togo': '多哥', 'Tonga': '汤加', 'Trinidad and Tobago': '特立尼达和多巴哥', 'Tunisia': '突尼斯', 'Turkey': '土耳其', 'Turkmenistan': '土库曼斯坦', 'Uganda': '乌干达', 'Ukraine': '乌克兰', 'United Arab Emirates': '阿联酋', 'United Kingdom': '英国', 'United States': '美国', 'Uruguay': '乌拉圭', 'Uzbekistan': '乌兹别克斯坦', 'Vanuatu': '瓦努阿图', 'Venezuela': '委内瑞拉', 'Vietnam': '越南', 'West Bank': '西岸', 'W. Sahara': '西撒哈拉', 'Yemen': '也门', 'Zambia': '赞比亚', 'Zimbabwe': '津巴布韦' };
 
-        // === 📱 手机端：初始化时默认收起抽屉 ===
-        function initMobileState() {
-            const wrapper = document.getElementById('control-panel-wrapper');
-            const btn = document.getElementById('toggle-sidebar-btn');
-            
-            // 如果屏幕宽度小于 768px (手机)，默认添加 collapsed 类
-            if (window.innerWidth <= 768) {
-                wrapper.classList.add('collapsed');
-                btn.classList.remove('btn-expanded');
-            }
-        }
-        initMobileState();
-
+        // --- 初始化与数据加载 ---
         function loadCloudData() {
             fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } })
             .then(res => res.json())
             .then(data => {
                 let record = data.record;
                 myBookData = (record.books || (!record.favorites && !record.books) ? record : {});
-                if(!record.favorites && !record.books && Object.keys(record).length > 0) { myBookData = record; }
+                if(!record.favorites && !record.books && Object.keys(record).length > 0) {
+                      myBookData = record; 
+                }
                 if(record.favorites) favoriteDrinks = record.favorites;
                 if(record.books) myBookData = record.books;
+
                 updateUI();
                 updateCountryDropdown(); 
                 document.getElementById('loading-mask').style.display = 'none';
@@ -363,20 +563,24 @@
             }).then(res => res.json()).then(data => { console.log('Saved'); });
         }
 
+        // --- 核心逻辑：智能配酒 ---
         function getDrinkForBook(bookTitle, isMystery) {
             let seed = 0;
             for (let i = 0; i < bookTitle.length; i++) seed += bookTitle.charCodeAt(i);
             const lowerTitle = bookTitle.toLowerCase();
             let candidates = COCKTAIL_DB;
+
             if(isMystery || lowerTitle.includes('杀') || lowerTitle.includes('死') || lowerTitle.includes('谜')) {
                 candidates = COCKTAIL_DB.filter(d => d.profile === 'bitter' || d.strength === 'strong');
             } else if(lowerTitle.includes('爱') || lowerTitle.includes('梦') || lowerTitle.includes('婚')) {
                 candidates = COCKTAIL_DB.filter(d => d.profile === 'sweet');
             }
+
             if(candidates.length === 0) candidates = COCKTAIL_DB;
             return candidates[seed % candidates.length]; 
         }
 
+        // --- 吧台交互 ---
         function switchBarTab(tab) {
             currentBarTab = tab;
             document.querySelectorAll('.bar-nav-item').forEach(el => el.classList.remove('active'));
@@ -393,7 +597,8 @@
             el.classList.add('selected');
         }
 
-        const MIX_PHRASES = ["正在研磨情节碎片...", "提取字里行间的伏笔...", "注入主角的眼泪...", "搅拌悬疑的迷雾...", "沉淀时光的余韵...", "正在冰镇复杂的真相...", "调和甜蜜与苦涩的结局..."];
+        // === 调酒动画逻辑 ===
+        const MIX_PHRASES = ["正在放入发酵桶...", "添加古代水果...", "等待季节轮转...", "听取祝尼魔的低语...", "从地窖取出陈酿...", "正在擦拭玻璃杯...", "加入一点星之粉尘..."];
 
         function playMixingAnimation(book, drink) {
             const overlay = document.getElementById('mixing-overlay');
@@ -410,17 +615,19 @@
             const interval = setInterval(() => {
                 progress += 5;
                 mixBar.style.width = progress + '%';
+                
                 if(progress % 20 === 0) {
                     mixText.innerText = MIX_PHRASES[Math.floor(Math.random() * MIX_PHRASES.length)];
                 }
+
                 if(progress >= 100) {
                     clearInterval(interval);
-                    mixText.innerText = "✨ PRESCRIPTION READY ✨";
+                    mixText.innerText = "酿 造 完 成 !";
                     revealIcon.classList.add('popping');
                     setTimeout(() => {
                         overlay.classList.remove('active');
                         showDrinkCard(book, drink); 
-                    }, 800); 
+                    }, 600); 
                 }
             }, 80); 
         }
@@ -429,6 +636,7 @@
             let allBooks = [];
             for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(b));
             if(allBooks.length === 0) return alert("书架是空的，先去记录几本书吧！");
+            
             const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
             const bookObj = getBookObject(randomBook);
             const drink = getDrinkForBook(bookObj.title, bookObj.isMystery);
@@ -438,14 +646,17 @@
         function serveFilteredDrink() {
             let allBooks = [];
             for(let c in myBookData) myBookData[c].forEach(b => allBooks.push(getBookObject(b)));
+            
             let validDrinks = COCKTAIL_DB.filter(d => {
                 let matchTaste = filterState.taste === 'any' || d.profile === filterState.taste;
                 let matchStrength = filterState.strength === 'any' || d.strength === filterState.strength;
                 let matchBase = filterState.base === 'any' || d.base.toLowerCase() === filterState.base.toLowerCase();
                 return matchTaste && matchStrength && matchBase;
             });
+
             if(validDrinks.length === 0) return alert("酒单中没有符合这种刁钻口味的配方...");
             if(allBooks.length === 0) return alert("没有书可做酒了。");
+            
             const targetDrinkBase = validDrinks[Math.floor(Math.random() * validDrinks.length)];
             const randomBook = allBooks[Math.floor(Math.random() * allBooks.length)];
             playMixingAnimation(randomBook, targetDrinkBase);
@@ -454,15 +665,18 @@
         function showDrinkCard(book, forcedDrink = null) {
             currentBookForDrink = book;
             document.getElementById('btn-save').classList.remove('saved'); 
+            
             const drink = forcedDrink || getDrinkForBook(book.title, book.isMystery);
             let displayIntro = drink.intro;
             let displayIngredients = drink.materials;
             let displayMethod = drink.method;
+
             if (book.customDrink) {
                 displayIntro = book.customDrink.intro || drink.intro;
                 displayIngredients = book.customDrink.ingredients || drink.materials;
                 displayMethod = book.customDrink.method || drink.method;
             }
+
             document.getElementById('card-title').innerText = book.title;
             document.getElementById('card-base').innerText = drink.base.toUpperCase() + ' BASE';
             document.getElementById('card-icon').innerText = getGlassIcon(drink.glass);
@@ -470,9 +684,11 @@
             document.getElementById('card-ingredients').innerText = displayIngredients;
             document.getElementById('card-method').innerText = displayMethod;
             document.getElementById('card-glass').innerText = drink.glass;
+            
             let tags = `<span class="tag-pill">${drink.profile}</span><span class="tag-pill">${drink.strength}</span>`;
-            if(book.isMystery) tags += `<span class="tag-pill" style="color:#ff00de">Mystery</span>`;
+            if(book.isMystery) tags += `<span class="tag-pill" style="background:#4a2810">Mystery</span>`;
             document.getElementById('card-tags').innerHTML = tags;
+
             updateFavIconState();
             document.getElementById('drink-overlay').classList.add('show');
         }
@@ -482,6 +698,7 @@
             const newIntro = document.getElementById('card-intro').innerText;
             const newIngredients = document.getElementById('card-ingredients').innerText;
             const newMethod = document.getElementById('card-method').innerText;
+
             let found = false;
             for (let country in myBookData) {
                 const list = myBookData[country];
@@ -498,6 +715,7 @@
                 }
                 if (found) break;
             }
+
             if (found) {
                 saveCloudData();
                 const btn = document.getElementById('btn-save');
@@ -508,17 +726,21 @@
             }
         }
 
+        // 🆕 下载图片
         function downloadCard() {
             const card = document.getElementById('capture-target');
             const closeBtn = document.querySelector('.card-close');
             const actions = document.querySelector('.card-actions');
+            
             closeBtn.style.display = 'none';
             actions.style.display = 'none';
-            html2canvas(card, { backgroundColor: "#0a0a0a", scale: 2 }).then(canvas => {
+
+            html2canvas(card, { backgroundColor: null, scale: 2 }).then(canvas => {
                 closeBtn.style.display = 'block';
                 actions.style.display = 'flex';
+
                 const link = document.createElement('a');
-                link.download = `VA11-${currentBookForDrink.title}.png`;
+                link.download = `Stardrop-${currentBookForDrink.title}.png`;
                 link.href = canvas.toDataURL();
                 link.click();
             });
@@ -560,7 +782,7 @@
             const container = document.getElementById('fav-container');
             container.innerHTML = '';
             if(favoriteDrinks.length === 0) {
-                container.innerHTML = '<div class="empty-tip">酒窖空空如也...<br>去点一杯并收藏吧。</div>';
+                container.innerHTML = '<div style="color:#ccc;text-align:center;width:100%;margin-top:20px;">酒窖空空如也...<br>去点一杯并收藏吧。</div>';
                 return;
             }
             let allBooksMap = {};
@@ -572,32 +794,18 @@
                     const div = document.createElement('div');
                     div.className = 'fav-item';
                     div.onclick = () => showDrinkCard(book);
-                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:#666;">${drink.base}</div>`;
+                    div.innerHTML = `<div class="fav-icon">${getGlassIcon(drink.glass)}</div><div class="fav-name">${title}</div><div style="font-size:10px; color:#aaa;">${drink.base}</div>`;
                     container.appendChild(div);
                 }
             });
         }
 
-        // 修改：更新 toggleSidebar 逻辑，处理按钮状态
         function toggleSidebar() {
             const wrapper = document.getElementById('control-panel-wrapper');
             const btn = document.getElementById('toggle-sidebar-btn');
-            
             wrapper.classList.toggle('collapsed');
-            
-            // 切换按钮的展开状态类，用于 CSS 伪元素图标切换
-            if(wrapper.classList.contains('collapsed')) {
-                btn.classList.remove('btn-expanded');
-                // 桌面版文字
-                if(window.innerWidth > 768) btn.innerHTML = '◀';
-            } else {
-                btn.classList.add('btn-expanded');
-                // 桌面版文字
-                if(window.innerWidth > 768) btn.innerHTML = '▶';
-            }
-            
-            // 🌟 关键修复：给一点延迟，等动画做完再 resize，否则地图可能会变形
-            setTimeout(() => { myChart.resize(); }, 400); 
+            btn.innerHTML = wrapper.classList.contains('collapsed') ? '◀' : '▶';
+            setTimeout(() => { myChart.resize(); }, 350); 
         }
 
         function toggleMysteryMode() {
@@ -657,7 +865,7 @@
                                 <div class="book-meta"><span>${b.author || '未知'}</span></div>
                             </div>
                             <div class="btn-group">
-                                <span class="action-btn bar-btn" onclick="openBarForBook('${safeCountry}', ${originalIndex})">🍸</span>
+                                <span class="action-btn bar-btn" onclick="openBarForBook('${safeCountry}', ${originalIndex})">🍹</span>
                                 <span class="action-btn edit-btn" onclick="editBook('${safeCountry}', ${originalIndex})">✎</span>
                                 <span class="action-btn delete-btn" onclick="deleteBook('${safeCountry}', ${originalIndex})">×</span>
                             </div>
@@ -674,8 +882,139 @@
             return item;
         }
 
-        // 🌟 修复：直接加载地图JS，避免Fetch本地CORS问题
-        // 使用 script src 自动注册地图
+        function addBook() {
+            const country = document.getElementById('country-select').value;
+            const bookName = document.getElementById('book-name').value.trim();
+            if (!country) { alert("请先选择一个国家"); return; }
+            if (!bookName) { alert("请输入书名"); return; }
+            const btn = document.getElementById('add-btn');
+            btn.disabled = true; btn.innerText = "🔍 搜寻中...";
+            fetch(`https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(bookName)}&langRestrict=zh&maxResults=1`)
+                .then(response => response.json()).then(data => {
+                    let newBook = { title: bookName, author: "未知作者", cover: "", isMystery: false }; 
+                    if (data.items && data.items.length > 0) {
+                        const info = data.items[0].volumeInfo;
+                        const apiTitle = info.title || "";
+                        if (apiTitle.includes(bookName)) {
+                            newBook.title = info.title || bookName;
+                            newBook.author = (info.authors && info.authors.length > 0) ? info.authors[0] : "未知作者";
+                            newBook.cover = (info.imageLinks && info.imageLinks.smallThumbnail) ? info.imageLinks.smallThumbnail : "";
+                            const categories = info.categories || [];
+                            const description = info.description || "";
+                            const title = info.title || "";
+                            const mysteryKeywords = ["Mystery", "Detective", "Crime", "Thriller", "Suspense", "Noir", "推理", "悬疑", "侦探", "凶杀", "解谜", "探案", "惊悚", "犯罪"];
+                            newBook.isMystery = mysteryKeywords.some(keyword => {
+                                return categories.some(c => c.includes(keyword)) || title.includes(keyword) || description.includes(keyword);
+                            });
+                        }
+                    }
+                    if (!myBookData[country]) myBookData[country] = [];
+                    myBookData[country].push(newBook);
+                    document.getElementById('book-name').value = '';
+                    btn.disabled = false; btn.innerText = "✨ 智能记录";
+                    saveCloudData(); 
+                    filterList(); 
+                })
+                .catch(err => {
+                    if (!myBookData[country]) myBookData[country] = [];
+                    myBookData[country].push({ title: bookName, author: "", cover: "", isMystery: false });
+                    document.getElementById('book-name').value = '';
+                    btn.disabled = false; btn.innerText = "✨ 智能记录";
+                    saveCloudData();
+                    filterList();
+                });
+        }
+
+        function editBook(country, index) {
+            const bookObj = getBookObject(myBookData[country][index]);
+            const newName = prompt("📝 修改书名:", bookObj.title);
+            if (newName === null) return;
+            const newIsMystery = confirm(`这本书是【悬疑/推理】类吗？\n\n点击“确定”标记为悬疑。\n点击“取消”标记为普通。`);
+            const newCountry = prompt("🌍 修改国家 (如果要移动请修改):", country);
+            if (newCountry === null) return;
+            bookObj.title = newName;
+            bookObj.isMystery = newIsMystery;
+            if (newCountry !== country) {
+                myBookData[country].splice(index, 1);
+                if (myBookData[country].length === 0) delete myBookData[country];
+                if (!myBookData[newCountry]) myBookData[newCountry] = [];
+                myBookData[newCountry].push(bookObj);
+            } else {
+                myBookData[country][index] = bookObj;
+            }
+            saveCloudData();
+            filterList();
+        }
+
+        function deleteBook(country, index) {
+            const bookObj = getBookObject(myBookData[country][index]);
+            if (confirm(`删除《${bookObj.title}》？`)) {
+                myBookData[country].splice(index, 1);
+                if (myBookData[country].length === 0) delete myBookData[country];
+                saveCloudData();
+                filterList();
+            }
+        }
+
+        function updateCountryDropdown() {
+            const select = document.getElementById('country-select');
+            const currentSelected = select.value; 
+            let sortedList = allCountryList.map(name => {
+                return { name: name, count: (myBookData[name] && myBookData[name].length > 0) ? myBookData[name].length : 0 };
+            });
+            sortedList.sort((a, b) => {
+                if (b.count !== a.count) return b.count - a.count;
+                return a.name.localeCompare(b.name, 'zh');
+            });
+            select.innerHTML = '<option value="">-- 显示全部 --</option>';
+            [...sortedList.slice(0,5), ...sortedList.slice(5).sort((a,b)=>a.name.localeCompare(b.name,'zh'))].forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.name;
+                option.textContent = item.name; 
+                select.appendChild(option);
+            });
+            if (currentSelected) select.value = currentSelected;
+        }
+
+        function renderMap(filteredData, highlightCountry = "") {
+            if (!geoJsonData) return;
+            const mapData = [];
+            let maxBookCount = 0;
+            const defaultAreaColor = isMysteryMode ? '#37474f' : '#f7fcf5';
+            const defaultBorderColor = isMysteryMode ? '#546e7a' : '#eceff1';
+            const hoverStyle = { shadowBlur: 15, shadowColor: 'rgba(0, 0, 0, 0.5)', shadowOffsetY: 8, shadowOffsetX: 4 };
+            const selectedStyle = { areaColor: isMysteryMode ? '#7e57c2' : '#ffeb3b', borderColor: defaultBorderColor, borderWidth: 0.5, ...hoverStyle };
+            for (let country in filteredData) {
+                const count = filteredData[country].length;
+                if (count > maxBookCount) maxBookCount = count;
+                let itemStyle;
+                if (highlightCountry && country === highlightCountry) { itemStyle = selectedStyle; } else { itemStyle = { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }; }
+                mapData.push({ name: country, value: count, books: filteredData[country], itemStyle: itemStyle });
+            }
+            if (highlightCountry && !filteredData[highlightCountry]) { mapData.push({ name: highlightCountry, value: 0, books: [], itemStyle: selectedStyle }); }
+            if (maxBookCount < 5) maxBookCount = 5;
+            const forestColors = [{min: 50, label: '50+', color: '#005a32'}, {min: 20, max: 49, label: '20-49', color: '#238b45'}, {min: 10, max: 19, label: '10-19', color: '#41ab5d'}, {min: 5, max: 9, label: '5-9', color: '#74c476'}, {min: 1, max: 4, label: '1-4', color: '#bae4b3'}];
+            const mysteryColors = [{min: 50, label: '50+', color: '#311b92'}, {min: 20, max: 49, label: '20-49', color: '#4527a0'}, {min: 10, max: 19, label: '10-19', color: '#673ab7'}, {min: 5, max: 9, label: '5-9', color: '#9575cd'}, {min: 1, max: 4, label: '1-4', color: '#d1c4e9'}];
+            const option = {
+                backgroundColor: 'transparent',
+                visualMap: { type: 'piecewise', left: 'left', top: 'bottom', text: [isMysteryMode ? '悬疑含量' : '阅读量', ''], pieces: isMysteryMode ? mysteryColors : forestColors, textStyle: { color: isMysteryMode ? '#b39ddb' : '#5d4037' }, },
+                tooltip: {
+                    trigger: 'item', backgroundColor: isMysteryMode ? 'rgba(50, 50, 50, 0.9)' : '#ffffff', borderColor: isMysteryMode ? '#9575cd' : '#74c476', borderWidth: 1, textStyle: { color: isMysteryMode ? '#fff' : '#37474f' },
+                    formatter: (p) => {
+                        if (!p.value) return p.name;
+                        if (p.data && p.data.books && p.data.books.length > 0) {
+                            let bookListStr = p.data.books.slice(0, 8).map(b=>'• '+b.title).join('<br/>');
+                            if(p.data.books.length > 8) bookListStr += '<br/>...等 ' + p.data.books.length + ' 本';
+                            return `<div style="padding:5px;"><strong>${p.name}</strong><br/><span style="font-size:12px;opacity:0.8">已读：${p.value}</span><br/>${bookListStr}</div>`;
+                        }
+                        return p.name;
+                    }
+                },
+                series: [{ type: 'map', map: 'world', nameMap: nameMap, roam: true, zoom: 1.2, itemStyle: { areaColor: defaultAreaColor, borderColor: defaultBorderColor, borderWidth: 0.5 }, emphasis: { label: { show: true, color: isMysteryMode ? '#fff' : '#01579b', fontWeight: 'bold' }, itemStyle: hoverStyle }, data: mapData }]
+            };
+            myChart.setOption(option);
+        }
+
         fetch('https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/json/world.json')
             .then(res => res.json()).then(json => { 
                 geoJsonData = json; 
@@ -688,14 +1027,8 @@
                 const uniqueCountries = new Set(Object.values(nameMap));
                 allCountryList = Array.from(uniqueCountries).sort((a, b) => a.localeCompare(b, 'zh'));
                 loadCloudData(); 
-            })
-            .catch(err => {
-                // 如果 fetch 失败 (通常是本地打开file://)，尝试回退逻辑
-                alert("Map Load Error (Check Network): " + err);
             });
-        
         window.addEventListener('resize', () => myChart.resize());
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@4.9.0/map/js/world.js"></script>
 </body>
 </html>
